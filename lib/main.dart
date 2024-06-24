@@ -26,37 +26,71 @@ class MyApp extends StatelessWidget {
             )
           ),
           backgroundColor: Color.fromARGB(255, 29, 77, 59),
-          leading: Image.asset(
-            'assets/icons/icon-192.png',
-            height: 100,
-            width: 100, 
+          leading: SvgPicture.asset(
+            'assets/images/dlsu-logo.svg',
           )
         ),
-        body: Center(
-          child: FractionallySizedBox(
-            widthFactor: 0.75,
-            heightFactor: 0.3,
-            child: Container(
-              decoration: BoxDecoration(
-                color: Color(0xff7cc089),
-                borderRadius: BorderRadius.all(Radius.circular(20))
-              ),
-              height: 250,
-              width: 300,
-              padding: EdgeInsets.all(30),
-              child: Center(
-                child: Text(
-                  "Hi! This is sample text.",
+        body: Padding(
+          padding: const EdgeInsets.all(50.0),
+          child: Center(
+            child: Column(
+              children: [
+                Text(
+                  "Kumusta ka? Gusto kong magpakilala sa iyo. Isa akong Nurse Bot. Ang pangalan ko ay si Fil-Bis.",
                   style: TextStyle(
                     color: Color(0xfff4e8d8),
                     fontFamily: 'GoogleSans',
-                    fontSize: 20,
+                    fontSize: 32,
                     fontWeight: FontWeight.w700,
-                  )
+                  ),
+                  textAlign: TextAlign.center,
                 ),
-              )
+                Image.asset(
+                  'assets/icons/icon-325.png', 
+                  width: 150,
+                  height: 150,
+                ),
+                Expanded(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      color: Color(0xff7cc089),
+                      borderRadius: BorderRadius.all(Radius.circular(20))
+                    ),
+                    height: 250,
+                    width: 300,
+                    padding: EdgeInsets.all(30),
+                    child: Center(
+                      child: Column(
+                        children: [
+                          Text(
+                            "Hi! This is sample text.",
+                            style: TextStyle(
+                              color: Color(0xfff4e8d8),
+                              fontFamily: 'GoogleSans',
+                              fontSize: 20,
+                              fontWeight: FontWeight.w700,
+                            )
+                          ),
+                          ElevatedButton(
+                            onPressed: () {}, 
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Color(0xffed7402), // background color
+                              foregroundColor: Colors.white, // text color
+                              elevation: 0,
+                              textStyle: TextStyle(
+                                fontFamily: 'Shrikhand',
+                              )
+                            ),
+                            child: Text("Filipino"),
+                          ),
+                        ],
+                      ),
+                    )
+                  ),
+                ),
+              ],
             ),
-          )
+          ),
         )
       ),
     );
