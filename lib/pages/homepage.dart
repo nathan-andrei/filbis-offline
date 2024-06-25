@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:filbis_offline/model/collections_controller.dart';
+import 'package:filbis_offline/util/answers.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
@@ -16,8 +17,6 @@ class _HomepageState extends State<Homepage> {
   @override
   Widget build(BuildContext context) {
     var _loadedData = {};
-    var answers = {};
-
 
     Future<void> readJson() async {
       final String response = await rootBundle.loadString('assets/files/sample.json');
@@ -30,6 +29,7 @@ class _HomepageState extends State<Homepage> {
     @override
     void initState() {
       readJson();
+      FilbisDatabase.initDb();
       super.initState();
     }
     
@@ -99,18 +99,14 @@ class _HomepageState extends State<Homepage> {
                             fontWeight: FontWeight.w700,
                           )
                         ),
-                        ElevatedButton(
-                          onPressed: () {}, 
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: const Color(0xffed7402), // background color
-                            foregroundColor: Colors.white, // text color
-                            elevation: 0,
-                            textStyle: const TextStyle(
-                              fontFamily: 'Shrikhand',
-                            )
+                        Expanded(
+                          child: ListView.builder(
+                            itemCount: FilbisDatabase.answers.length,
+                            itemBuilder: (context, index) {
+                              return Answer(onPress: () => {}, choice: FilbisDatabase.answers[index]);
+                            }
                           ),
-                          child: const Text("Filipino"),
-                        ),
+                        )
                       ],
                     ),
                   )

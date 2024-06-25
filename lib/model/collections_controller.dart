@@ -8,6 +8,8 @@ import 'package:http/http.dart' as http;
 class FilbisDatabase extends ChangeNotifier {
   static late Isar isar;
   var _loadedData = {};
+  List questions = [];
+  static List answers = ["Filipino", "English", "Cebuano"];
 
   // Initializes IsarDB
   static Future<Isar> initIsar() async {
@@ -60,9 +62,12 @@ class FilbisDatabase extends ChangeNotifier {
         }
       });
     } catch (e) {
-      print(e);
+        print(e);
     }
-    }
+  }
+
+
+
 }
 
 
