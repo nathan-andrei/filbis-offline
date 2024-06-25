@@ -105,6 +105,7 @@ flutter:
 
   assets: 
     - assets/icons/icon-192.png
+    - assets/icons/icon-325.png
     - assets/icons/icon-512.png
     - assets/images/dlsu-logo.svg
     - assets/images/dost-seal.svg
