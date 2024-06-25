@@ -1,10 +1,15 @@
 // ignore_for_file: prefer_const_constructors
 
+import 'package:filbis_offline/model/collections_controller.dart';
 import 'package:filbis_offline/pages/homepage.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:provider/provider.dart';
 
-void main() {
+void main() async {
+    // Initialize Database 
+  WidgetsFlutterBinding.ensureInitialized();
+  await FilbisDatabase.initIsar();
+
   runApp(MyApp());
 }
 
@@ -13,10 +18,13 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      home: Homepage(),
-
+    return MultiProvider(
+      providers: [
+        Provider(create: (_) => FilbisDatabase())
+      ],
+      child: MaterialApp( 
+        home: Homepage()
+      ),
     );
   }
 }

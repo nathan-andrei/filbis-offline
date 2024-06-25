@@ -1,4 +1,8 @@
+import 'dart:convert';
+
+import 'package:filbis_offline/model/collections_controller.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 
 class Homepage extends StatefulWidget {
@@ -11,6 +15,24 @@ class Homepage extends StatefulWidget {
 class _HomepageState extends State<Homepage> {
   @override
   Widget build(BuildContext context) {
+    var _loadedData = {};
+    var answers = {};
+
+
+    Future<void> readJson() async {
+      final String response = await rootBundle.loadString('assets/files/sample.json');
+      final data = await json.decode(response);
+      setState(() {
+        _loadedData = data["q1"];
+      });
+    }    
+    
+    @override
+    void initState() {
+      readJson();
+      super.initState();
+    }
+    
     return Scaffold(
       backgroundColor: const Color(0xff337641),
       appBar: AppBar(
@@ -25,7 +47,16 @@ class _HomepageState extends State<Homepage> {
         backgroundColor: const Color.fromARGB(255, 29, 77, 59),
         leading: SvgPicture.asset(
           'assets/images/dlsu-logo.svg',
-        )
+        ),
+        actions: const [
+          IconButton(
+            icon: Icon(
+              Icons.settings,
+              color: Colors.white,
+            ),
+            onPressed: FilbisDatabase.initDb,
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(50.0),
