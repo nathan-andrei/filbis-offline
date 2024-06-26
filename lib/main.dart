@@ -22,7 +22,8 @@ class MyApp extends StatelessWidget {
       providers: [
         Provider(create: (_) => FilbisDatabase())
       ],
-      child: MaterialApp( 
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false, 
         home: Homepage()
       ),
     );

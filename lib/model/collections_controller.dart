@@ -12,9 +12,9 @@ class FilbisDatabase extends ChangeNotifier {
   static List answers = ["Filipino", "English", "Cebuano"];
 
   // Initializes IsarDB
-  static Future<Isar> initIsar() async {
+  static Future<void> initIsar() async {
     final dir = await getApplicationDocumentsDirectory();
-    return await Isar.open(
+    isar = await Isar.open(
       [ModuleSchema],
       directory: dir.path
     );

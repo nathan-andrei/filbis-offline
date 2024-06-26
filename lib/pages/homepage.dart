@@ -1,5 +1,8 @@
+// ignore_for_file: prefer_const_constructors
+
 import 'dart:convert';
 
+import 'package:filbis_offline/classes/button.dart';
 import 'package:filbis_offline/model/collections_controller.dart';
 import 'package:filbis_offline/util/answers.dart';
 import 'package:flutter/material.dart';
@@ -17,6 +20,13 @@ class _HomepageState extends State<Homepage> {
   @override
   Widget build(BuildContext context) {
     var _loadedData = {};
+    var answers = {};
+    var _buttons = [ // temp test, (_buttons) should be (answers)
+      'Filipino',
+      'English',
+      'Cebuano',
+    ];
+
 
     Future<void> readJson() async {
       final String response = await rootBundle.loadString('assets/files/sample.json');
@@ -48,13 +58,20 @@ class _HomepageState extends State<Homepage> {
         leading: SvgPicture.asset(
           'assets/images/dlsu-logo.svg',
         ),
-        actions: const [
+        actions: [
           IconButton(
             icon: Icon(
               Icons.settings,
               color: Colors.white,
             ),
             onPressed: FilbisDatabase.initDb,
+          ),
+          IconButton(
+            icon: Icon(
+              Icons.restart_alt,
+              color: Colors.white
+            ),
+            onPressed: () {},
           ),
         ],
       ),
@@ -63,22 +80,25 @@ class _HomepageState extends State<Homepage> {
         child: Center(
           child: Column(
             children: [
+              Spacer(flex: 1,),
               const Text(
                 "Kumusta ka? Gusto kong magpakilala sa iyo. Isa akong Nurse Bot. Ang pangalan ko ay si Fil-Bis.",
                 style: TextStyle(
                   color: Color(0xfff4e8d8),
                   fontFamily: 'GoogleSans',
-                  fontSize: 32,
+                  fontSize: 36,
                   fontWeight: FontWeight.w700,
                 ),
                 textAlign: TextAlign.center,
               ),
+              SizedBox(height: 80,),
               Image.asset(
                 'assets/icons/icon-325.png', 
                 width: 150,
-                height: 150,
+                height: 75,
               ),
-              Expanded(
+              FractionallySizedBox(
+                widthFactor: 0.75,
                 child: Container(
                   decoration: const BoxDecoration(
                     color: Color(0xff7cc089),
@@ -91,27 +111,29 @@ class _HomepageState extends State<Homepage> {
                     child: Column(
                       children: [
                         const Text(
-                          "Hi! This is sample text.",
+                          "Pumili ng isa sa mga opsyon o magtype sa chatbox.",
                           style: TextStyle(
                             color: Color(0xfff4e8d8),
                             fontFamily: 'GoogleSans',
-                            fontSize: 20,
+                            fontSize: 26,
                             fontWeight: FontWeight.w700,
                           )
                         ),
+                        SizedBox(height: 15,),
                         Expanded(
                           child: ListView.builder(
-                            itemCount: FilbisDatabase.answers.length,
+                            itemCount: _buttons.length,
                             itemBuilder: (context, index) {
-                              return Answer(onPress: () => {}, choice: FilbisDatabase.answers[index]);
+                              return MyButton(child: _buttons[index],);
                             }
                           ),
-                        )
+                        ),
                       ],
                     ),
                   )
                 ),
               ),
+              Spacer(flex: 1),
             ],
           ),
         ),
