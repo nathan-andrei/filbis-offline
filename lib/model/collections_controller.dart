@@ -7,9 +7,10 @@ import 'package:http/http.dart' as http;
 
 class FilbisDatabase extends ChangeNotifier {
   static late Isar isar;
-  var _loadedData = {};
-  List questions = [];
-  static List answers = ["Filipino", "English", "Cebuano"];
+  static String currModule = "general_module"; 
+  static int currSub = 0; 
+  late String question = "";
+  late final List<String> answers; 
 
   // Initializes IsarDB
   static Future<void> initIsar() async {
@@ -62,11 +63,15 @@ class FilbisDatabase extends ChangeNotifier {
         }
       });
     } catch (e) {
-        print(e);
+        debugPrint(e.toString());
     }
   }
 
-
+  void getQuestion() async {
+    final module = await isar.modules.filter().nameEqualTo("general_module").findFirst();
+    question = module!.subModule[currSub].questionTranslation!.english_response.toString();
+    notifyListeners();
+  }
 
 }
 
