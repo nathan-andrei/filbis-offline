@@ -19,28 +19,23 @@ class Homepage extends StatefulWidget {
 }
 
 class _HomepageState extends State<Homepage> {
+  late String language; 
+
+  @override
+    void initState() {
+      print("I N I T I A L I Z E D");
+      context.read<FilbisDatabase>().setGeneral();
+      super.initState();
+  }
+
+  void setLanguage (language) {
+    setState(() {
+      language = language;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
-    late String language; 
-
-    var _buttons = [ // temp test, (_buttons) should be (answers)
-      'Filipino',
-      'English',
-      'Cebuano',
-    ];
-
-    @override
-    void initState() {
-      FilbisDatabase.initDb();
-      super.initState();
-    }
-
-    void setLanguage (language) {
-      setState(() {
-        language = language;
-      });
-    }
-
     return Scaffold(
       backgroundColor: const Color(0xff337641),
       appBar: AppBar(

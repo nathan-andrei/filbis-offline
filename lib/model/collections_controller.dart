@@ -7,10 +7,12 @@ import 'package:http/http.dart' as http;
 
 class FilbisDatabase extends ChangeNotifier {
   static late Isar isar;
-  static String currModule = "general_module"; 
-  static int currSub = 0; 
-  late String question = "";
-  late final List<String> answers; 
+
+  // Variables for module display
+  late Module? currModule;
+  int currSub = 6; 
+  String currQuestion = "Filbis is thinking...";
+  late List<String>? currAnswers = []; 
 
   // Initializes IsarDB
   static Future<void> initIsar() async {
@@ -57,7 +59,7 @@ class FilbisDatabase extends ChangeNotifier {
             subMod.questionTranslation = questionTranslation;
             // add the subModule to the module's embedded list
             await isar.writeTxn(() async {
-              await isar.modules.put(mod..subModule?.add(subMod));
+              await isar.modules.put(mod..subModule.add(subMod));
             });
           }
         }
@@ -67,12 +69,42 @@ class FilbisDatabase extends ChangeNotifier {
     }
   }
 
-  void getQuestion() async {
-    final module = await isar.modules.filter().nameEqualTo("general_module").findFirst();
-    question = module!.subModule[currSub].questionTranslation!.english_response.toString();
+  // Sets the current module to the general module
+  void setGeneral() async {
+    currQuestion = "Loading...";
+    currAnswers = [];  
+
+    try {
+      var module = await isar.modules.filter().nameEqualTo("general_module").findFirst();
+      if (module != null && module.subModule.isNotEmpty) {
+        currModule = module;
+        currSub = 4;
+
+        // Update with actual values from the database
+        currQuestion = module.subModule[currSub].questionTranslation?.english_response ?? "Filbis is thinking...";
+        currAnswers = module.subModule[currSub].qckReply?.english_replies ?? []; // Provide a default value or keep empty
+      } else {
+
+        currQuestion = "Filbis is thinking...";
+        currAnswers = []; 
+      }
+    } catch (e) {
+      // Handle any errors that occur during database access
+      debugPrint(e.toString());
+      currQuestion = "Error loading question";
+      currAnswers = []; // Adjust based on the expected type
+    }
+    debugPrint("currQuestion: " + currQuestion + "currAnswers: " + currAnswers.toString());
     notifyListeners();
   }
-
 }
+
+  // void getQuestion() async {
+  //   final module = await isar.modules.filter().nameEqualTo("general_module").findFirst();
+  //   question = module!.subModule[currSub].questionTranslation!.english_response.toString();
+  //   notifyListeners();
+  // }
+
+
 
 
