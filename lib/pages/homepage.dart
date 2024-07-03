@@ -2,11 +2,7 @@
 
 import 'dart:convert';
 
-import 'package:auto_size_text/auto_size_text.dart';
-import 'package:auto_size_text/auto_size_text.dart';
-import 'package:filbis_offline/classes/button.dart';
 import 'package:filbis_offline/model/collections_controller.dart';
-import 'package:filbis_offline/util/answers.dart';
 import 'package:filbis_offline/util/module.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -21,19 +17,19 @@ class Homepage extends StatefulWidget {
 }
 
 class _HomepageState extends State<Homepage> {
-  late String language; 
+  bool haveLanguage = false;
 
   @override
     void initState() {
       print("I N I T I A L I Z E D");
-      context.read<FilbisDatabase>().setGeneral();
+      context.read<FilbisDatabase>().getLanguage();
+      //context.read<FilbisDatabase>().setGeneral(language);
       super.initState();
   }
 
-  void setLanguage (language) {
-    setState(() {
-      language = language;
-    });
+  void returnResponse(String response) {
+    haveLanguage ? context.read<FilbisDatabase>().setGeneral(response) : 
+                   context.read<FilbisDatabase>().setLanguage(response);
   }
 
   @override
@@ -70,7 +66,7 @@ class _HomepageState extends State<Homepage> {
           ),
         ],
       ),
-      body: Module(),
+      body: Module(onButtonPressed: returnResponse),
     );
   }
 }

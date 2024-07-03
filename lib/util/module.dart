@@ -5,7 +5,9 @@ import 'package:provider/provider.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 
 class Module extends StatelessWidget {
-  const Module({super.key});
+  final ValueChanged<String> onButtonPressed;
+
+  const Module({required this.onButtonPressed, super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -81,7 +83,7 @@ class Module extends StatelessWidget {
                                 );
                               }
                               // debugPrint(" H E R E ");
-                              return MyButton(child: answers[index]);
+                              return MyButton(child: answers[index], onPressed: onButtonPressed,);
                             }
                           ),
                         ),
