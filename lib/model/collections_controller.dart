@@ -3,6 +3,7 @@ import 'package:filbis_offline/model/collections.dart';
 import 'package:flutter/material.dart'; 
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
+import 'translation_extension.dart';
 import 'package:http/http.dart' as http;
 
 class FilbisDatabase extends ChangeNotifier {
@@ -10,9 +11,14 @@ class FilbisDatabase extends ChangeNotifier {
 
   // Variables for module display
   late Module? currModule;
-  int currSub = 6; 
+  // int currSub = 6; 
+  late SubModule? currSub;
   String currQuestion = "Filbis is thinking...";
   late List<String>? currAnswers = []; 
+  late String currLanguage;
+  late String next;
+  bool haveLanguage = false;
+  late String currResponse;
 
   // Initializes IsarDB
   static Future<void> initIsar() async {
@@ -38,25 +44,33 @@ class FilbisDatabase extends ChangeNotifier {
           final subModules = data[key];
           for (var subKey in subModules.keys){
             // for each submodule, set the qckreply and stuff
-            final subMod = sub_module()..name = subKey;
-            final qckReply = qck_reply();
-            final questionTranslation = question_translation();
+            final subMod = SubModule()..name = subKey;
+            final qckReply = QckReply();
+            final questionTranslation = QuestionTranslation();
+            final mobile = Mobile();
 
             // set the qckReply
             if (subModules[subKey]["qck_reply"] != null){
-              qckReply.english_replies = subModules[subKey]["qck_reply"]["english_replies"].cast<String>();
-              qckReply.cebuano_replies = subModules[subKey]["qck_reply"]["cebuano_replies"].cast<String>();
-              qckReply.tagalog_replies = subModules[subKey]["qck_reply"]["tagalog_replies"].cast<String>();
+              qckReply.englishReplies = subModules[subKey]["qck_reply"]["english_replies"].cast<String>();
+              qckReply.cebuanoReplies = subModules[subKey]["qck_reply"]["cebuano_replies"].cast<String>();
+              qckReply.tagalogReplies = subModules[subKey]["qck_reply"]["tagalog_replies"].cast<String>();
             }
             // set the questionTranslation
             if (subModules[subKey]["question_translation"] != null){
-              questionTranslation.english_response = subModules[subKey]["question_translation"]["english_response"];
-              questionTranslation.cebuano_response = subModules[subKey]["question_translation"]["cebuano_response"];
-              questionTranslation.tagalog_response = subModules[subKey]["question_translation"]["tagalog_response"];
+              questionTranslation.englishResponse = subModules[subKey]["question_translation"]["english_response"];
+              questionTranslation.cebuanoResponse = subModules[subKey]["question_translation"]["cebuano_response"];
+              questionTranslation.tagalogResponse = subModules[subKey]["question_translation"]["tagalog_response"];
+            }
+            // set the Mobile
+            if (subModules[subKey]["question_translation"] != null){
+              mobile.dataKey = subModules[subKey]["mobile"]["data_key"];
+              mobile.yesNext = subModules[subKey]["mobile"]["yes_next"];
+              mobile.next = subModules[subKey]["mobile"]["next"];
             }
             // set the subModule
             subMod.qckReply = qckReply;
             subMod.questionTranslation = questionTranslation;
+            subMod.mobile = mobile;
             // add the subModule to the module's embedded list
             await isar.writeTxn(() async {
               await isar.modules.put(mod..subModule.add(subMod));
@@ -70,19 +84,20 @@ class FilbisDatabase extends ChangeNotifier {
   }
 
   // Sets the current module to the general module
-  void setGeneral() async {
+  void setGeneral(String response) async {
     currQuestion = "Loading...";
-    currAnswers = [];  
+    currAnswers = [];
 
     try {
       var module = await isar.modules.filter().nameEqualTo("general_module").findFirst();
+
       if (module != null && module.subModule.isNotEmpty) {
-        currModule = module;
-        currSub = 4;
+        // currSub = 4;
+        currSub = module.subModule.firstWhere((subModule) => subModule.name == "get-privacy-policy");
 
         // Update with actual values from the database
-        currQuestion = module.subModule[currSub].questionTranslation?.english_response ?? "Filbis is thinking...";
-        currAnswers = module.subModule[currSub].qckReply?.english_replies ?? []; // Provide a default value or keep empty
+        currQuestion = currSub?.questionTranslation?.getTranslation(currLanguage) ?? "Filbis is thinking...";
+        currAnswers = currSub?.qckReply?.getTranslation(currLanguage) ?? []; // Provide a default value or keep empty
       } else {
 
         currQuestion = "Filbis is thinking...";
@@ -94,8 +109,21 @@ class FilbisDatabase extends ChangeNotifier {
       currQuestion = "Error loading question";
       currAnswers = []; // Adjust based on the expected type
     }
-    debugPrint("currQuestion: " + currQuestion + "currAnswers: " + currAnswers.toString());
+    debugPrint("currQuestion: $currQuestion currAnswers: $currAnswers");
     notifyListeners();
+  }
+
+  // Display language question (not present in Firestore)
+  void getLanguage() {
+    currQuestion = "Anong lenguahe ang gagamitin natin? What language do you want to use? Unsa nga pinulongan ang gusto nimong gamiton?";
+    currAnswers = ['Filipino', 'English', 'Cebuano'];
+  }
+
+  void setLanguage(String selLanguage) {
+    currLanguage = selLanguage;
+    haveLanguage = true;
+
+    setGeneral("test");
   }
 }
 
@@ -104,7 +132,3 @@ class FilbisDatabase extends ChangeNotifier {
   //   question = module!.subModule[currSub].questionTranslation!.english_response.toString();
   //   notifyListeners();
   // }
-
-
-
-
