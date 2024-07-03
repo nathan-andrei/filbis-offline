@@ -8,28 +8,37 @@ part 'collections.g.dart';
 class Module {
   Id id = Isar.autoIncrement;
   late String name;
-  List<sub_module> subModule = List.empty(growable: true);
+  List<SubModule> subModule = List.empty(growable: true);
+  List<String> order = List.empty(growable: true);
 }
 
 @embedded
-class sub_module {
+class SubModule {
   // final qckReply = IsarLink<qck_reply>();
-  qck_reply? qckReply;
-  question_translation? questionTranslation;
+  QckReply? qckReply;
+  QuestionTranslation? questionTranslation;
+  Mobile? mobile;
   late String name;
 }
 
 @embedded
-class qck_reply {
+class QckReply {
   // int id = Isar.autoIncrement;
-  List<String>? cebuano_replies;
-  List<String>? english_replies;
-  List<String>? tagalog_replies;
+  List<String>? cebuanoReplies;
+  List<String>? englishReplies;
+  List<String>? tagalogReplies;
 }
 
 @embedded
-class question_translation {
-  String? cebuano_response;
-  String? english_response;
-  String? tagalog_response;
+class QuestionTranslation {
+  String? cebuanoResponse;
+  String? englishResponse;
+  String? tagalogResponse;
+}
+
+@embedded 
+class Mobile {
+  String? dataKey;
+  String? yesNext;
+  String? next;
 }
