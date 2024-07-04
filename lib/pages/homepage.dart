@@ -19,11 +19,11 @@ class _HomepageState extends State<Homepage> {
   bool haveLanguage = false;
 
   @override
-    void initState() {
-      debugPrint("I N I T I A L I Z E D");
-      context.read<FilbisDatabase>().getLanguage();
-      //context.read<FilbisDatabase>().setGeneral(language);
-      super.initState();
+  void initState() {
+    debugPrint("I N I T I A L I Z E D");
+    context.read<FilbisDatabase>().getLanguage();
+    //context.read<FilbisDatabase>().setGeneral(language);
+    super.initState();
   }
 
   void returnResponse(String response) {
