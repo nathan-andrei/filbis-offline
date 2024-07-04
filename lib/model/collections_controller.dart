@@ -1,31 +1,31 @@
 import 'dart:convert';
 import 'package:filbis_offline/model/collections.dart';
+import 'package:filbis_offline/model/translation_extension.dart';
 import 'package:flutter/material.dart'; 
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'translation_extension.dart';
 import 'package:http/http.dart' as http;
-
+ 
 class FilbisDatabase extends ChangeNotifier {
   static late Isar isar;
 
   // Variables for module display
-  late Module? currModule;
-  // int currSub = 6; 
-  late SubModule? currSub;
+  late Module? currModule; 
+  late SubModule currSub;
+  late String subModule;
   String currQuestion = "Filbis is thinking...";
   late List<String>? currAnswers = []; 
   late String currLanguage;
-  late String next;
   bool haveLanguage = false;
-  late String currResponse;
+
 
   // Initializes IsarDB
   static Future<void> initIsar() async {
     final dir = await getApplicationDocumentsDirectory();
     isar = await Isar.open(
       [ModuleSchema],
-      directory: dir.path
+      directory: dir.path 
     );
   }
 
@@ -106,21 +106,41 @@ class FilbisDatabase extends ChangeNotifier {
     }
   }
 
+  void setSubModule( String nextSubModule ) {
+    subModule = nextSubModule;
+    SubModule next = currModule!.subModule.firstWhere((submodule) => submodule.name == nextSubModule);
+    currQuestion = next.questionTranslation!.getTranslation(currLanguage)!;
+    currAnswers = next.qckReply?.getTranslation(currLanguage);
+    notifyListeners();
+  }
+
+  void setModule( String nextModule ) async {
+    currModule = await isar.modules.filter().nameEqualTo(nextModule).findFirst();
+    String nextSubmodule = currModule!.order[0];
+    setSubModule(nextSubmodule);
+  }
+
   // Sets the current module to the general module
   void setGeneral(String response) async {
     currQuestion = "Loading...";
+    currAnswers = [];  
+    String subName = "get-age";
     currAnswers = [];
 
     try {
       var module = await isar.modules.filter().nameEqualTo("general_module").findFirst();
 
       if (module != null && module.subModule.isNotEmpty) {
+        currModule = module;
+        // currSub = 2;
         // currSub = 4;
-        currSub = module.subModule.firstWhere((subModule) => subModule.name == "get-privacy-policy");
+        currSub = module.subModule.firstWhere((subModule) => subModule.name == "respond-main-menu");
 
         // Update with actual values from the database
-        currQuestion = currSub?.questionTranslation?.getTranslation(currLanguage) ?? "Filbis is thinking...";
-        currAnswers = currSub?.qckReply?.getTranslation(currLanguage) ?? []; // Provide a default value or keep empty
+        // var sampleSub = module.subModule.firstWhere((submodule) => submodule.name == subName);
+        // debugPrint(sampleSub.toString());
+        currQuestion = currSub.questionTranslation?.getTranslation(currLanguage) ?? "Filbis is thinking...";
+        currAnswers = currSub.qckReply?.getTranslation(currLanguage) ?? []; // Provide a default value or keep empty
       } else {
 
         currQuestion = "Filbis is thinking...";
@@ -155,3 +175,7 @@ class FilbisDatabase extends ChangeNotifier {
   //   question = module!.subModule[currSub].questionTranslation!.english_response.toString();
   //   notifyListeners();
   // }
+
+
+
+

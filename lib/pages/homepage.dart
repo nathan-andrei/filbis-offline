@@ -5,7 +5,6 @@ import 'dart:convert';
 import 'package:filbis_offline/model/collections_controller.dart';
 import 'package:filbis_offline/util/module.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
 
@@ -21,7 +20,7 @@ class _HomepageState extends State<Homepage> {
 
   @override
     void initState() {
-      print("I N I T I A L I Z E D");
+      debugPrint("I N I T I A L I Z E D");
       context.read<FilbisDatabase>().getLanguage();
       //context.read<FilbisDatabase>().setGeneral(language);
       super.initState();
