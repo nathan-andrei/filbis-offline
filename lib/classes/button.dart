@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:auto_size_text/auto_size_text.dart';
 
 class MyButton extends StatelessWidget {
   final String child;
@@ -23,7 +24,13 @@ class MyButton extends StatelessWidget {
             fontSize: 24,
           )
         ),
-        child: Text(child),
+        child: AutoSizeText(
+          child,
+          style: TextStyle(
+            color: Colors.white,
+            fontFamily: 'Shrikhand',
+          )
+        ),
       ),
     );
   }
