@@ -1,4 +1,4 @@
-import 'package:filbis_offline/classes/button.dart';
+import 'package:filbis_offline/widgets/button.dart';
 import 'package:filbis_offline/model/collections.dart';
 import 'package:filbis_offline/model/collections_controller.dart';
 import 'package:filbis_offline/util/checking.dart';

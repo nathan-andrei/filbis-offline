@@ -1,4 +1,4 @@
-import 'collections.dart';
+import '../model/collections.dart';
 
 extension QuestionTranslationExtension on QuestionTranslation {
   String? getTranslation(String language) {

@@ -3,7 +3,7 @@
 import 'dart:convert';
 
 import 'package:filbis_offline/model/collections_controller.dart';
-import 'package:filbis_offline/util/module.dart';
+import 'package:filbis_offline/widgets/module.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';

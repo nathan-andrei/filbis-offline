@@ -1,10 +1,10 @@
 import 'dart:convert';
 import 'package:filbis_offline/model/collections.dart';
-import 'package:filbis_offline/model/translation_extension.dart';
+import 'package:filbis_offline/util/translation_extension.dart';
 import 'package:flutter/material.dart'; 
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
-import 'translation_extension.dart';
+import '../util/translation_extension.dart';
 import 'package:http/http.dart' as http;
  
 class FilbisDatabase extends ChangeNotifier {
