@@ -11,13 +11,11 @@ class FilbisDatabase extends ChangeNotifier {
 
   // Variables for module display
   late Module? currModule; 
-  late SubModule currSub;
-  late String subModule;
-  String currQuestion = "Filbis is thinking...";
+  late SubModule? currSub;
+  late String? subModule;
+  String? currQuestion = "Filbis is thinking...";
   late List<String>? currAnswers = []; 
   late String currLanguage;
-  bool haveLanguage = false;
-
 
   // Initializes IsarDB
   static Future<void> initIsar() async {
@@ -105,18 +103,35 @@ class FilbisDatabase extends ChangeNotifier {
     }
   }
 
-  void setSubModule( String nextSubModule ) {
+  void setSubModule( String? nextSubModule ) {
     subModule = nextSubModule;
+    debugPrint("Next submodule: $subModule"); // D E B U G  PRINTING
     SubModule next = currModule!.subModule.firstWhere((submodule) => submodule.name == nextSubModule);
+    currSub = next;
     currQuestion = next.questionTranslation!.getTranslation(currLanguage)!;
     currAnswers = next.qckReply?.getTranslation(currLanguage);
     notifyListeners();
   }
 
-  void setModule( String nextModule ) async {
-    currModule = await isar.modules.filter().nameEqualTo(nextModule).findFirst();
-    String nextSubmodule = currModule!.order[0];
-    setSubModule(nextSubmodule);
+  Future<void> setModule( String nextModule ) async {
+    try {
+      var module = await isar.modules.filter().nameEqualTo(nextModule).findFirst();
+    
+      if ( module != null && module.subModule.isNotEmpty) {
+        currModule = module;
+        String? nextSubmodule = currModule?.order[0];
+        setSubModule(nextSubmodule);
+      } else {
+        currQuestion = "Filbis is thinking...";
+        currAnswers = ["Retry"];
+      }
+
+    } catch (e) {
+      debugPrint(e.toString());
+      currQuestion = "Error loading question...";
+      currAnswers = ["Retry"];
+    }
+    
   }
 
   // Sets the current module to the general module
@@ -138,8 +153,8 @@ class FilbisDatabase extends ChangeNotifier {
         // Update with actual values from the database
         // var sampleSub = module.subModule.firstWhere((submodule) => submodule.name == subName);
         // debugPrint(sampleSub.toString());
-        currQuestion = currSub.questionTranslation?.getTranslation(currLanguage) ?? "Filbis is thinking...";
-        currAnswers = currSub.qckReply?.getTranslation(currLanguage) ?? []; // Provide a default value or keep empty
+        currQuestion = currSub!.questionTranslation?.getTranslation(currLanguage) ?? "Filbis is thinking...";
+        currAnswers = currSub!.qckReply?.getTranslation(currLanguage) ?? []; // Provide a default value or keep empty
       } else {
 
         currQuestion = "Filbis is thinking...";
@@ -163,8 +178,8 @@ class FilbisDatabase extends ChangeNotifier {
 
   void setLanguage(String selLanguage) {
     currLanguage = selLanguage;
-    haveLanguage = true;
-
+    debugPrint(currLanguage);
+    // setModule("general_module");
     setGeneral("test");
   }
 }

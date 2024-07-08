@@ -1,3 +1,6 @@
+// This File contains the mapping of the choices to its respective module names in the database
+// as well as a list of responses that trigger follow up questions that are used to check if the
+// program should route to the follow up question based on the choice
 class VerifyNextReference {
   final generalModule = {
     "Physical Health": "respond-physical-menu",
@@ -5,6 +8,7 @@ class VerifyNextReference {
     "Daily Living": "daily_living_scale_module",
     "Medical History": "respond-mental-menu",
     
+    // M E D I C A L HISTORY MODULE 
     "Family History": "family_history_module",
     "Vaccination Record": "immunization_module", 
 
@@ -24,5 +28,16 @@ class VerifyNextReference {
     ["Circumcision / Mens", "Pag-tuli/Pag-regla"]: "endocrine_module"
   };
 
-  final yes_Reference = [];
+  final checkTriggerFollowUp = ["0 time",
+                                "0 beses",
+                                "Root canal treatment",
+                                "Nagtambal sa root canal",
+                                "Nagpagamot ng root canal",
+                                "Oftentimes",
+                                "Kasagaran",
+                                "Madalas",
+                                "Sa sulod na parte",
+                                "Inner part",
+                                "Sa bandang loob",
+                                ];
 }

@@ -6,53 +6,17 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:auto_size_text/auto_size_text.dart';
 
-class Module extends StatefulWidget {
+class ModulePage extends StatefulWidget {
   final ValueChanged<String> onButtonPressed;
 
-  const Module({required this.onButtonPressed, super.key});
+  const ModulePage({required this.onButtonPressed, super.key});
 
   @override
-  State<Module> createState() => _ModuleState();
+  State<ModulePage> createState() => _ModuleState();
 }
 
-class _ModuleState extends State<Module> {
+class _ModuleState extends State<ModulePage> {
   final TextEditingController textController = TextEditingController();
-  String nextReference = "";
-
-
-  // Based on the choice, determine the route to next question
-  List<String> determineNext ( String choice, SubModule submodule ) {
-    final checkModule = VerifyNextReference();
-
-    // Check if in check_Module.general_module
-    if (checkModule.generalModule.containsKey(choice)) {
-      if (checkModule.generalModule[choice]!.contains("_")) {   // Choice leads to a module
-        return ["Module", checkModule.generalModule[choice]!];
-      } 
-      return ["SubModule", checkModule.generalModule[choice]!]; // Choice leads to a submodule
-    }
-    // Check if in yes_list 
-    if (checkModule.yes_Reference.contains(choice)) {
-      return ["Submodule", submodule.mobile!.yesNext!];
-    }
-
-    // Return next submodule reference
-    return ["Submodule", submodule.mobile!.next!]; 
-  }
-
-  void goNext ( String choice ) {
-    SubModule submodule = context.read<FilbisDatabase>().currSub;
-    List<String> nextRoute = determineNext(choice, submodule);
-
-    if (nextRoute[0] == "Module") {
-      context.read<FilbisDatabase>().setModule(nextRoute[1]);
-    } else {
-      context.read<FilbisDatabase>().setSubModule(nextRoute[1]);
-    }
-
-  }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +29,7 @@ class _ModuleState extends State<Module> {
             children: [
               Spacer(flex: 1,),
               AutoSizeText(
-                context.read<FilbisDatabase>().currQuestion,
+                context.read<FilbisDatabase>().currQuestion!,
                 textAlign: TextAlign.center,
                 maxLines: 3,
                 minFontSize: 18,

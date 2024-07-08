@@ -1,8 +1,8 @@
 // ignore_for_file: prefer_const_constructors
 
-import 'dart:convert';
-
+import 'package:filbis_offline/model/collections.dart';
 import 'package:filbis_offline/model/collections_controller.dart';
+import 'package:filbis_offline/util/checking.dart';
 import 'package:filbis_offline/widgets/module.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -26,9 +26,61 @@ class _HomepageState extends State<Homepage> {
     super.initState();
   }
 
-  void returnResponse(String response) {
-    haveLanguage ? context.read<FilbisDatabase>().setGeneral(response) : 
-                   context.read<FilbisDatabase>().setLanguage(response);
+  // Based on the choice, determine the route to next question
+  List<String> determineNext ( String choice, SubModule submodule ) {
+    final checkModule = VerifyNextReference();
+    debugPrint("Choice: ${choice}");
+    late List<String> valuepair;
+    // Check if in check_Module.general_module
+    if (checkModule.generalModule.containsKey(choice)) {
+      if (checkModule.generalModule[choice]!.contains("_")) {   // Choice leads to a module
+        valuepair = ["Module", checkModule.generalModule[choice]!];
+        debugPrint("FIRST IF: ${valuepair.toString()}");
+        return valuepair;
+      } 
+      valuepair = ["SubModule", checkModule.generalModule[choice]!];
+      debugPrint("SECOND IF: ${valuepair.toString()}");
+      return valuepair; // Choice leads to a submodule
+    }
+    // Check if in yes_list 
+    if (checkModule.checkTriggerFollowUp.contains(choice)) {
+      valuepair = ["Submodule", submodule.mobile!.yesNext!];
+      debugPrint("THIRD IF: ${valuepair.toString()}");
+      return valuepair;
+    }
+
+    // Return next submodule reference
+    debugPrint("FOURTH IF: ${["Submodule", submodule.mobile!.next].toString()}");
+    return ["Submodule", submodule.mobile!.next!]; 
+
+  }
+
+  void goNext ( String choice ) async {
+    SubModule submodule = context.read<FilbisDatabase>().currSub!;
+    List<String> nextRoute = determineNext(choice, submodule);
+    debugPrint(nextRoute.toString());
+    try {
+      if (nextRoute[0] == "Module") {
+        await context.read<FilbisDatabase>().setModule(nextRoute[1]);
+      } else {
+        context.read<FilbisDatabase>().setSubModule(nextRoute[1]);
+      }
+    } catch (e) {
+      debugPrint(e.toString());
+    }
+
+  }
+
+
+
+  void returnResponse(String choice) {
+    if (haveLanguage) {
+      goNext(choice);
+    }
+    else {
+      context.read<FilbisDatabase>().setLanguage(choice);
+      haveLanguage = true;
+    }
   }
 
   @override
@@ -65,7 +117,7 @@ class _HomepageState extends State<Homepage> {
           ),
         ],
       ),
-      body: Module(onButtonPressed: returnResponse),
+      body: ModulePage(onButtonPressed: returnResponse),
     );
   }
 }
