@@ -5,7 +5,7 @@ extension QuestionTranslationExtension on QuestionTranslation {
     switch (language) {
       case 'filipino':
         return tagalogResponse;
-      case 'English':
+      case 'english':
         return englishResponse;
       case 'cebuano':
         return cebuanoResponse;
@@ -20,7 +20,7 @@ extension QckReplyExtension on QckReply {
     switch (language) {
       case 'filipino':
         return tagalogReplies;
-      case 'English':
+      case 'english':
         return englishReplies;
       case 'cebuano':
         return cebuanoReplies;

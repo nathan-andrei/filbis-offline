@@ -1,43 +1,83 @@
 // This File contains the mapping of the choices to its respective module names in the database
 // as well as a list of responses that trigger follow up questions that are used to check if the
 // program should route to the follow up question based on the choice
+
 class VerifyNextReference {
   final generalModule = {
-    "Physical Health": "respond-physical-menu",
-    "Mental Health": "mental_health_module",
-    "Daily Living": "daily_living_scale_module",
-    "Medical History": "respond-mental-menu",
+    
+    "physical health": "respond-physical-menu",
+    "mental health": "mental_health_module",
+    "daily living": "daily_living_scale_module",
+    "medical history": "respond-mental-menu",
     
     // M E D I C A L HISTORY MODULE 
-    "Family History": "family_history_module",
-    "Vaccination Record": "immunization_module", 
+    "family history": "family_history_module",
+    "vaccination record": "immunization_module", 
 
-    // P H Y S I C A L HEALTH MODULE
-    "Allergies": "allergy_module",
-    ["Cough, Colds, Fever", "Ubo, Sipon Hilanat", "Ubo, Sipon, Lagnat"]: "cough_and_cold_module", 
-    ["Skin", "Balat", "Panit"]: "skin_module",
-    ["Head", "Ulo "]: "head_module",
-    ["Ears", "Tenga", "Dalunggan"]: "ear_module",
-    ["Eyes", "Mata"]: "eyes_module",
-    ["Nose", "Ilong"]: "nose_module", 
-    ["Heart and Lungs", "Puso at Baga", "Puso og Baga"]: "heart_lungs_module",
-    ["Mouth and Teeth", "Bibig at Ngipin", "Baba ug Ngipon"]: "mouth_throat_teeth_module",
-    ["Stomach", "Tiyan"]: "gi_module",
-    ["Urination", "Pag-ihi"]: "gu_module",
-    ["Bones and Muscle", "Buto at Muscle", "Buto ug Muscle"]: "buto_and_muscle_module",
-    ["Circumcision / Mens", "Pag-tuli/Pag-regla"]: "endocrine_module"
+    //---------- P H Y S I C A L HEALTH MODULE ---------- //
+    "allergies": "allergy_module",
+
+    "cough, colds, fever": "cough_and_cold_module", 
+    "ubo, sipon hilanat": "cough_and_cold_module",
+    "ubo, sipon, lagnat": "cough_and_cold_module",
+
+    "skin": "skin_module",
+    "balat": "skin_module",
+    "panit": "skin_module",
+
+    "head": "head_module",
+    "ulo ": "head_module",
+
+    "ears": "ear_module",
+    "tenga": "ear_module",
+    "dalunggan": "ear_module",
+
+    "eyes": "eyes_module",
+    "mata": "eyes_module",
+
+    "nose": "nose_module", 
+
+    "heart and lungs": "heart_lungs_module",
+    "puso at baga": "heart_lungs_module",
+    "puso og baga": "heart_lungs_module",
+
+    "mouth and teeth": "mouth_throat_teeth_module",
+    "bibig at ngipin": "mouth_throat_teeth_module",
+    "baba ug ngipon": "mouth_throat_teeth_module",
+
+    "stomach": "gi_module",
+    "tiyan": "gi_module",
+
+    "urination": "gu_module",
+    "pag-ihi": "gu_module",
+
+    "bones and muscle": "buto_and_muscle_module",
+    "buto at muscle": "buto_and_muscle_module",
+    "buto ug muscle": "buto_and_muscle_module",
+    
+    "circumcision / mens": "endocrine_module",
+    "pag-tuli/pag-regla": "endocrine_module"
   };
 
   final checkTriggerFollowUp = ["0 time",
-                                "0 beses",
-                                "Root canal treatment",
-                                "Nagtambal sa root canal",
-                                "Nagpagamot ng root canal",
-                                "Oftentimes",
-                                "Kasagaran",
-                                "Madalas",
-                                "Sa sulod na parte",
-                                "Inner part",
-                                "Sa bandang loob",
-                                ];
+                  "0 beses",
+                  "root canal treatment",
+                  "nagtambal sa root canal",
+                  "nagpagamot ng root canal",
+                  "oftentimes",
+                  "kasagaran",
+                  "madalas",
+                  "sa sulod na parte",
+                  "inner part",
+                  "sa bandang loob",
+                  "yes", 
+                  "oo",
+                  "meron"
+                  ];
+}
+
+void main() {
+  VerifyNextReference test = VerifyNextReference(); 
+
+  print(test.generalModule["Ulo"]);
 }
