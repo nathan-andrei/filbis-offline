@@ -36,7 +36,7 @@ class _ModuleState extends State<ModulePage> {
                 minFontSize: 18,
                 overflow: TextOverflow.fade,
                 style: const TextStyle(
-                  color: Color.fromARGB(255, 126, 119, 110),
+                  color: Color(0xfff4e8d8),
                   fontFamily: 'GoogleSans',
                   fontSize: 36,
                   fontWeight: FontWeight.w700,
