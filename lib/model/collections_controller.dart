@@ -179,8 +179,8 @@ class FilbisDatabase extends ChangeNotifier {
   void setLanguage(String selLanguage) {
     currLanguage = selLanguage;
     debugPrint(currLanguage);
-    // setModule("general_module");
-    setGeneral("test");
+    setModule("general_module");
+    // setGeneral("test");
   }
 }
 

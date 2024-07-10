@@ -77,10 +77,8 @@ class _HomepageState extends State<Homepage> {
     var FilbisDB = context.read<FilbisDatabase>();
     var currModule = FilbisDB.currModule;
     List<String> nextRoute = determineNext(choice, FilbisDB.currSub!, currModule!.order.length);
-    // ?debugPrint(nextRoute.toString());
-
-    // Check if nextroute[1] == END if so, check curr index if less than, equal
-
+    // debugPrint(nextRoute.toString());
+    debugPrint("Choice: $choice");
 
     try {
       if ( nextRoute[0] == "Module" ) {
@@ -97,7 +95,7 @@ class _HomepageState extends State<Homepage> {
         return;
       }
 
-      // Route to next submodule question, works regardless if in follow-up or not 
+      // Route to next submodule question, works regardless if coming from follow-up or not 
       if ( currSubmoduleIndex < currModule.order.length ) {
         FilbisDB.setSubModule(currModule.order[currSubmoduleIndex]);
         return;

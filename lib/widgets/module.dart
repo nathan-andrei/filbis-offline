@@ -2,6 +2,7 @@ import 'package:filbis_offline/widgets/button.dart';
 import 'package:filbis_offline/model/collections.dart';
 import 'package:filbis_offline/model/collections_controller.dart';
 import 'package:filbis_offline/util/checking.dart';
+import 'package:filbis_offline/widgets/textinput.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:auto_size_text/auto_size_text.dart';
@@ -82,13 +83,7 @@ class _ModuleState extends State<ModulePage> {
                               // debugPrint("SAMPLE");
                               if ( answers.isEmpty ) {
                                 // debugPrint("HERE");
-                                return TextField( 
-                                  controller:  textController,
-                                  decoration: const InputDecoration( 
-                                    hintText: "Type",
-                                    border: OutlineInputBorder()
-                                  ),
-                                );
+                                return TextInputWidget(textController: textController, onPress: widget.onButtonPressed);
                               }
                               // debugPrint(" H E R E ");
                               return MyButton(child: answers[index], onPressed: widget.onButtonPressed,);
