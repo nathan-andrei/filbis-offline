@@ -1,38 +1,36 @@
 import 'dart:convert';
+import 'dart:ffi';
 import 'package:filbis_offline/model/collections.dart';
+import 'package:filbis_offline/util/translation_extension.dart';
 import 'package:flutter/material.dart'; 
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
-import 'translation_extension.dart';
 import 'package:http/http.dart' as http;
-
+ 
 class FilbisDatabase extends ChangeNotifier {
   static late Isar isar;
 
   // Variables for module display
-  late Module? currModule;
-  // int currSub = 6; 
+  late Module? currModule; 
   late SubModule? currSub;
-  String currQuestion = "Filbis is thinking...";
+  late String? subModule;
+  String? currQuestion = "Filbis is thinking...";
   late List<String>? currAnswers = []; 
   late String currLanguage;
-  late String next;
-  bool haveLanguage = false;
-  late String currResponse;
 
   // Initializes IsarDB
   static Future<void> initIsar() async {
     final dir = await getApplicationDocumentsDirectory();
     isar = await Isar.open(
-      [ModuleSchema],
-      directory: dir.path
+      [ModuleSchema, ChildrenHealthDataSchema],
+      directory: dir.path 
     );
   }
 
   // Initialize the data from web server to the isar database
   static initDb() async {
     try {
-      var url = Uri.http('10.0.2.2:8000', '/mobile_download_modules');
+      var url = Uri.parse('https://587d-175-176-19-2.ngrok-free.app/mobile_download_modules');
       http.post(url, body: {}).then((response) async {
         var data = json.decode(response.body);
         // for each module in the data, add it to the database
@@ -64,9 +62,9 @@ class FilbisDatabase extends ChangeNotifier {
               }
               // set the Mobile
               if (subModules[subKey]["mobile"] != null){
-                mobile.dataKey = subModules[subKey]["mobile"]["data_key"];
-                mobile.yesNext = subModules[subKey]["mobile"]["yes_next"];
-                mobile.next = subModules[subKey]["mobile"]["next"];
+                mobile.dataKey = subModules[subKey]["mobile"]["data_key"] ?? "";
+                mobile.yesNext = subModules[subKey]["mobile"]["yes_next"] ?? "";
+                mobile.next = subModules[subKey]["mobile"]["next"] ?? "END";
               }
               // set the subModule
               subMod.qckReply = qckReply;
@@ -106,21 +104,58 @@ class FilbisDatabase extends ChangeNotifier {
     }
   }
 
+  void setSubModule( String? nextSubModule ) {
+    subModule = nextSubModule;
+    debugPrint("Next submodule: $subModule"); // D E B U G  PRINTING
+    SubModule next = currModule!.subModule.firstWhere((submodule) => submodule.name == nextSubModule);
+    currSub = next;
+    currQuestion = next.questionTranslation!.getTranslation(currLanguage)!;
+    currAnswers = next.qckReply?.getTranslation(currLanguage);
+    notifyListeners();
+  }
+
+  Future<void> setModule( String nextModule ) async {
+    try {
+      var module = await isar.modules.filter().nameEqualTo(nextModule).findFirst();
+    
+      if ( module != null && module.subModule.isNotEmpty) {
+        currModule = module;
+        String? nextSubmodule = currModule?.order[0];
+        setSubModule(nextSubmodule);
+      } else {
+        currQuestion = "Filbis is thinking...";
+        currAnswers = ["Retry"];
+      }
+
+    } catch (e) {
+      debugPrint(e.toString());
+      currQuestion = "Error loading question...";
+      currAnswers = ["Retry"];
+    }
+    
+  }
+
   // Sets the current module to the general module
   void setGeneral(String response) async {
     currQuestion = "Loading...";
+    currAnswers = [];  
+    String subName = "get-age";
     currAnswers = [];
 
     try {
       var module = await isar.modules.filter().nameEqualTo("general_module").findFirst();
 
       if (module != null && module.subModule.isNotEmpty) {
+        currModule = module;
+        // currSub = 2;
         // currSub = 4;
-        currSub = module.subModule.firstWhere((subModule) => subModule.name == "get-privacy-policy");
+        currSub = module.subModule.firstWhere((subModule) => subModule.name == "respond-main-menu");
 
         // Update with actual values from the database
-        currQuestion = currSub?.questionTranslation?.getTranslation(currLanguage) ?? "Filbis is thinking...";
-        currAnswers = currSub?.qckReply?.getTranslation(currLanguage) ?? []; // Provide a default value or keep empty
+        // var sampleSub = module.subModule.firstWhere((submodule) => submodule.name == subName);
+        // debugPrint(sampleSub.toString());
+        currQuestion = currSub!.questionTranslation?.getTranslation(currLanguage) ?? "Filbis is thinking...";
+        currAnswers = currSub!.qckReply?.getTranslation(currLanguage) ?? []; // Provide a default value or keep empty
       } else {
 
         currQuestion = "Filbis is thinking...";
@@ -144,9 +179,66 @@ class FilbisDatabase extends ChangeNotifier {
 
   void setLanguage(String selLanguage) {
     currLanguage = selLanguage;
-    haveLanguage = true;
+    debugPrint(currLanguage);
+    setModule("general_module");
+    // setGeneral("test");
+  }
 
-    setGeneral("test");
+  // Create medical record for child if one does not exist yet
+  Future<void> checkChildRecord(String uid) async {
+    await isar.writeTxn(() async {
+      // Check if ChildrenHealthData object exists
+      final record = await isar.childrenHealthDatas.filter()
+        .uidEqualTo(uid)
+        .findFirst();
+
+      if (record == null) {
+        // if does not exist, make and insert in db
+        final newChildRecord = ChildrenHealthData()
+          ..uid = uid
+          ..medicalHistory = MedicalHistory();
+
+        await isar.childrenHealthDatas.put(newChildRecord);
+        debugPrint("put something");
+      }
+      else {
+        debugPrint("child record already exists");
+      }
+    });
+  }
+
+  // Create a new response record for the appropriate module 
+  // (NOTE: should push record to db only once module is finished, otherwise discard)
+  // void createModuleRecord(String subModule) {
+  //   MedicalRecord medicalRecord = MedicalRecord()
+  //     ..uid = "med_rec_${}"
+  //     ..createdAt = formatDate(DateTime.now());
+  // }
+
+  // After each submodule, store user response as a key-value pair in the medical record object
+  void recordResponse(String choice, String recordId) {
+    debugPrint("data_key: ${currSub?.mobile?.dataKey}");
+
+    // if data_key is not blank, store response in database
+    if (currSub?.mobile?.dataKey != "") {
+      final medicalRecord = MedicalRecord()
+      ..createdAt = formatDate(DateTime.now())
+      ..records = [
+        KeyValuePair()..key = currSub?.mobile!.dataKey ?? ""..value = choice
+      ];
+      
+    } 
+    else { debugPrint("didn't store anything."); }
+  }
+
+  // formats a DateTime object as how dates are stored in webapp database
+  // example format: (2024-07-09)-13:21:54:792
+  String formatDate(DateTime date) {
+    String newDate = "(${date.year}-${date.month}-${date.day})-${date.hour}:${date.minute}:${date.second}:${date.millisecond}";
+
+    debugPrint(newDate);
+
+    return newDate;
   }
 }
 

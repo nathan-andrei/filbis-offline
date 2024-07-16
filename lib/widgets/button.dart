@@ -13,7 +13,8 @@ class MyButton extends StatelessWidget {
       widthFactor: 0.6,
       child: ElevatedButton(
         onPressed: () {
-          onPressed(child.toLowerCase());
+          // onPressed(child.toLowerCase());
+          onPressed(child);
         }, 
         style: ElevatedButton.styleFrom(
           backgroundColor: const Color(0xffed7402), // background color
