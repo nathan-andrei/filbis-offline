@@ -42,3 +42,34 @@ class Mobile {
   String? yesNext;
   String? next;
 }
+
+@collection
+class ChildrenHealthData {
+  Id id = Isar.autoIncrement;
+  late String uid; // format -> (school)-(id_number)
+  
+  late MedicalHistory medicalHistory;
+}
+
+@embedded
+class MedicalHistory {
+  String name = 'medical_history';
+ 
+  List<MedicalRecord> medicalRecords = List.empty(growable: true);
+}
+
+@embedded 
+class MedicalRecord {
+  late String uid; // format -> med_rec_(module_name)_(datetime)
+  late String sessionName = ""; // not utilized yet for mobile version :thinking:
+  late String createdAt;
+  late String updatedAt; // as of creation, this isn't utilized at all in web app, so will not be used here yet
+
+  List<KeyValuePair> records = []; // e.g. []
+}
+
+@embedded 
+class KeyValuePair {
+  late String key;
+  late String value;
+}

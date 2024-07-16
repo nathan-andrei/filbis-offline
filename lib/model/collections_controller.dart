@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:ffi';
 import 'package:filbis_offline/model/collections.dart';
 import 'package:filbis_offline/util/translation_extension.dart';
 import 'package:flutter/material.dart'; 
@@ -21,7 +22,7 @@ class FilbisDatabase extends ChangeNotifier {
   static Future<void> initIsar() async {
     final dir = await getApplicationDocumentsDirectory();
     isar = await Isar.open(
-      [ModuleSchema],
+      [ModuleSchema, ChildrenHealthDataSchema],
       directory: dir.path 
     );
   }
@@ -29,7 +30,7 @@ class FilbisDatabase extends ChangeNotifier {
   // Initialize the data from web server to the isar database
   static initDb() async {
     try {
-      var url = Uri.http('10.0.2.2:8000', '/mobile_download_modules');
+      var url = Uri.parse('https://587d-175-176-19-2.ngrok-free.app/mobile_download_modules');
       http.post(url, body: {}).then((response) async {
         var data = json.decode(response.body);
         // for each module in the data, add it to the database
@@ -61,9 +62,9 @@ class FilbisDatabase extends ChangeNotifier {
               }
               // set the Mobile
               if (subModules[subKey]["mobile"] != null){
-                mobile.dataKey = subModules[subKey]["mobile"]["data_key"];
-                mobile.yesNext = subModules[subKey]["mobile"]["yes_next"];
-                mobile.next = subModules[subKey]["mobile"]["next"];
+                mobile.dataKey = subModules[subKey]["mobile"]["data_key"] ?? "";
+                mobile.yesNext = subModules[subKey]["mobile"]["yes_next"] ?? "";
+                mobile.next = subModules[subKey]["mobile"]["next"] ?? "END";
               }
               // set the subModule
               subMod.qckReply = qckReply;
@@ -182,6 +183,63 @@ class FilbisDatabase extends ChangeNotifier {
     setModule("general_module");
     // setGeneral("test");
   }
+
+  // Create medical record for child if one does not exist yet
+  Future<void> checkChildRecord(String uid) async {
+    await isar.writeTxn(() async {
+      // Check if ChildrenHealthData object exists
+      final record = await isar.childrenHealthDatas.filter()
+        .uidEqualTo(uid)
+        .findFirst();
+
+      if (record == null) {
+        // if does not exist, make and insert in db
+        final newChildRecord = ChildrenHealthData()
+          ..uid = uid
+          ..medicalHistory = MedicalHistory();
+
+        await isar.childrenHealthDatas.put(newChildRecord);
+        debugPrint("put something");
+      }
+      else {
+        debugPrint("child record already exists");
+      }
+    });
+  }
+
+  // Create a new response record for the appropriate module 
+  // (NOTE: should push record to db only once module is finished, otherwise discard)
+  // void createModuleRecord(String subModule) {
+  //   MedicalRecord medicalRecord = MedicalRecord()
+  //     ..uid = "med_rec_${}"
+  //     ..createdAt = formatDate(DateTime.now());
+  // }
+
+  // After each submodule, store user response as a key-value pair in the medical record object
+  void recordResponse(String choice, String recordId) {
+    debugPrint("data_key: ${currSub?.mobile?.dataKey}");
+
+    // if data_key is not blank, store response in database
+    if (currSub?.mobile?.dataKey != "") {
+      final medicalRecord = MedicalRecord()
+      ..createdAt = formatDate(DateTime.now())
+      ..records = [
+        KeyValuePair()..key = currSub?.mobile!.dataKey ?? ""..value = choice
+      ];
+      
+    } 
+    else { debugPrint("didn't store anything."); }
+  }
+
+  // formats a DateTime object as how dates are stored in webapp database
+  // example format: (2024-07-09)-13:21:54:792
+  String formatDate(DateTime date) {
+    String newDate = "(${date.year}-${date.month}-${date.day})-${date.hour}:${date.minute}:${date.second}:${date.millisecond}";
+
+    debugPrint(newDate);
+
+    return newDate;
+  }
 }
 
   // void getQuestion() async {
@@ -189,7 +247,3 @@ class FilbisDatabase extends ChangeNotifier {
   //   question = module!.subModule[currSub].questionTranslation!.english_response.toString();
   //   notifyListeners();
   // }
-
-
-
-

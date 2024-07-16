@@ -18,19 +18,20 @@ class Homepage extends StatefulWidget {
 class _HomepageState extends State<Homepage> {
   bool haveLanguage = false; // Check if the session has a set language
   int currSubmoduleIndex = 0; // variable for current subodule index, helps for going back from a follow up Q
+  String school = "";
+  String idNum = "";
 
   @override
   void initState() {
     debugPrint("I N I T I A L I Z E D");
     context.read<FilbisDatabase>().getLanguage();
-    //context.read<FilbisDatabase>().setGeneral(language);
     super.initState();
   }
 
   // Based on the choice, determine the route to next question
   List<String> determineNext ( String choice, SubModule submodule, int length ) {
     final checkModule = VerifyNextReference();
-    debugPrint("Choice: ${choice}");
+    debugPrint("Choice: $choice");
     late List<String> valuepair;
     
     // Check if in check_Module.general_module
@@ -76,8 +77,33 @@ class _HomepageState extends State<Homepage> {
   void goNext ( String choice ) async {
     var FilbisDB = context.read<FilbisDatabase>();
     var currModule = FilbisDB.currModule;
+    String uid = "-";
     List<String> nextRoute = determineNext(choice, FilbisDB.currSub!, currModule!.order.length);
     // debugPrint(nextRoute.toString());
+    
+    // RESPONSE HANDLING
+
+    debugPrint("nextRoute: ${nextRoute[1]}");
+    if (nextRoute[1] == "get-student-id") { // if submitted school
+      school = choice;
+      debugPrint("logged school: $school");
+    }
+    else if (nextRoute[1] == "get-sex") { // if submitted id
+      idNum = choice;
+      debugPrint("logged id: $idNum");
+
+      uid = '$school-$idNum';
+      debugPrint("uid: $uid");
+
+      // check if record exists for curr school + id combo. if none, make one
+      context.read<FilbisDatabase>().checkChildRecord(uid);
+    }
+
+    // before going to the next q, record the response to the current one
+    // context.read<FilbisDatabase>().recordResponse(choice, uid);
+
+    // END - RESPONSE HANDLING
+
     debugPrint("Choice: $choice");
 
     try {
@@ -121,8 +147,6 @@ class _HomepageState extends State<Homepage> {
     }
 
   }
-
-
 
   void returnResponse(String choice) {
     if (haveLanguage) {
