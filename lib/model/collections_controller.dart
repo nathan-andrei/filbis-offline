@@ -251,13 +251,21 @@ class FilbisDatabase extends ChangeNotifier {
       // upload the data to the web server
       for (var record in child.medicalHistory.medicalRecords) {
         //go through records and upload them
-        const med_rec = {};
+        var med_rec = {};
 
         med_rec["uid"] = child.uid;
 
         for (var pair in record.records) {
+          if (pair.key == "uid"){
+            med_rec["sessionID"] = pair.value;
+          }
           med_rec[pair.key] = pair.value;
         }
+
+        // send the data here
+        
+
+        // delete db data here
       print(med_rec);
       }
 
