@@ -20,6 +20,7 @@ class _HomepageState extends State<Homepage> {
   int currSubmoduleIndex = 0; // variable for current subodule index, helps for going back from a follow up Q
   String school = "";
   String idNum = "";
+  bool yesBypass = false;
 
   @override
   void initState() {
@@ -49,7 +50,8 @@ class _HomepageState extends State<Homepage> {
       return valuepair; 
     }
     // Check if in yes_list 
-    if (checkModule.checkTriggerFollowUp.contains(choice)) {
+    if (checkModule.checkTriggerFollowUp.contains(choice) || yesBypass == true) {
+      debugPrint("Yes Bypass: $yesBypass");
       valuepair = ["Submodule", submodule.mobile!.yesNext!];
 
       // Choice is yes but no follow up
@@ -60,6 +62,7 @@ class _HomepageState extends State<Homepage> {
       // Follow up question choice is yes and it is the final F-U question
       if ( valuepair[1] == "END" && currSubmoduleIndex < length) currSubmoduleIndex++; 
       debugPrint("THIRD IF: ${valuepair.toString()}");
+      yesBypass = false;
       return valuepair;
     }
 
@@ -99,6 +102,34 @@ class _HomepageState extends State<Homepage> {
       context.read<FilbisDatabase>().checkChildRecord(uid);
     }
 
+  //ADD heart and lungs shit here
+    if (currModule.name == "heart_lungs_module") {
+      //avoid food and drink confirm-avoiding-food-and-drink
+      //number eat/drink probiotic > 1 count-drinks-amount
+      // situps > 1 count-situps-amount
+      // taken antidep confirm-anxiety-remedy-medicine
+      // breathing exer > 1 count-breathing-exercises-amount
+      // massaged > 1 count-massaged-muscle-amount
+      // warm shower > 1 count-shower-amount
+      // painkillers confirm-spasm-remedy-medicine
+      
+      const subModulesToCheck = ["confirm-avoiding-food-and-drink", "count-drinks-amount", 
+                                "count-situps-amount", "confirm-anxiety-remedy-medicine", "count-breathing-exercises-amount",
+                                "count-massaged-muscle-amount", "count-shower-amount", "confirm-spasm-remedy-medicine"];
+
+      var subModule = FilbisDB.subModule!;
+
+      if (subModulesToCheck.contains(subModule)) {
+        const noFlags = ["0", "dili", "wala", "no", "not sure", "hindi"];
+        for (var flag in noFlags) {
+          if (!choice.contains(flag)) {
+            yesBypass = true;
+            break;
+          }
+        }
+      }
+    }
+
     // before going to the next q, record the response to the current one
     // context.read<FilbisDatabase>().recordResponse(choice, uid);
 
@@ -124,6 +155,7 @@ class _HomepageState extends State<Homepage> {
       // Route to next submodule question, works regardless if coming from follow-up or not 
       if ( currSubmoduleIndex < currModule.order.length ) {
         FilbisDB.setSubModule(currModule.order[currSubmoduleIndex]);
+        yesBypass = false;
         return;
       }
 
@@ -141,7 +173,7 @@ class _HomepageState extends State<Homepage> {
       //   FilbisDB.setGeneral("general_module");
       // }
       debugPrint("currSubModuleIndex: $currSubmoduleIndex"); // D E B U G  PRINT
-      FilbisDB.setGeneral("general-mosule");
+      FilbisDB.setGeneral("general-module");
     } catch (e) {
       debugPrint(e.toString());
     }
@@ -188,7 +220,7 @@ class _HomepageState extends State<Homepage> {
               Icons.restart_alt,
               color: Colors.white
             ),
-            onPressed: () {},
+            onPressed: FilbisDatabase.uploadData,
           ),
         ],
       ),

@@ -30,7 +30,7 @@ class FilbisDatabase extends ChangeNotifier {
   // Initialize the data from web server to the isar database
   static initDb() async {
     try {
-      var url = Uri.parse('https://587d-175-176-19-2.ngrok-free.app/mobile_download_modules');
+      var url = Uri.parse('https://106d-115-146-216-254.ngrok-free.app/mobile_download_modules');
       http.post(url, body: {}).then((response) async {
         var data = json.decode(response.body);
         // for each module in the data, add it to the database
@@ -239,6 +239,39 @@ class FilbisDatabase extends ChangeNotifier {
     debugPrint(newDate);
 
     return newDate;
+  }
+
+   //Upload data to the web server
+  static void uploadData() async {
+    // get all data from the ChildrenHealthData
+
+    var data = await isar.childrenHealthDatas.where().findAll();
+
+    for (var child in data) {
+      // upload the data to the web server
+      for (var record in child.medicalHistory.medicalRecords) {
+        //go through records and upload them
+        var med_rec = {};
+
+        med_rec["uid"] = child.uid;
+
+        for (var pair in record.records) {
+          if (pair.key == "uid"){
+            med_rec["sessionID"] = pair.value;
+          }
+          med_rec[pair.key] = pair.value;
+        }
+
+        // send the data here
+        
+
+        // delete db data here
+      print(med_rec);
+      }
+
+    }
+
+    // upload the data to the web server
   }
 }
 
