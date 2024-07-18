@@ -132,16 +132,20 @@ class FilbisDatabase extends ChangeNotifier {
         debugPrint("No child found with uid: $currChildID");
       }
     });
+    storedRecords.clear();
   }
 
-  void setSubModule( String? nextSubModule ) {
+  void setSubModule( String? nextSubModule ) async {
     subModule = nextSubModule;
     debugPrint("Next submodule: $subModule"); // D E B U G  PRINTING
 
     // if next submodule is a main question (part of module.order), push current record
     // to stored records and start a new record for the main question
     if (currModule!.order.contains(subModule)) {
-      if (currRecord.records.isNotEmpty) { storedRecords.add(currRecord); }
+      debugPrint(storedRecords.length.toString());
+      if (currRecord.uid != "") { storedRecords.add(currRecord); }
+      debugPrint(storedRecords.length.toString());
+
       createMainQuestionRecord(); // (puts the new record as currRecord)
       debugPrint("created new mq record");
     }
@@ -149,7 +153,10 @@ class FilbisDatabase extends ChangeNotifier {
     // special case to log general-module record properly
     if (subModule == "respond-main-menu") {
       storedRecords.add(currRecord);
-      pushRecordsToDb();
+      debugPrint(storedRecords.length.toString());
+      await pushRecordsToDb();
+      currRecord = MedicalRecord();
+      debugPrint("after pushing: ${storedRecords.length.toString()}");
     }
 
     SubModule next = currModule!.subModule.firstWhere((submodule) => submodule.name == nextSubModule);
@@ -190,7 +197,9 @@ class FilbisDatabase extends ChangeNotifier {
     // if we're finished with a module, push stored records to db
     // (but add the last record to storedRecords first)
     storedRecords.add(currRecord);
-    pushRecordsToDb();
+    debugPrint(storedRecords.length.toString());
+    await pushRecordsToDb();
+    debugPrint("after pushing: ${storedRecords.length.toString()}");
 
     try {
       var module = await isar.modules.filter().nameEqualTo("general_module").findFirst();
@@ -266,7 +275,9 @@ class FilbisDatabase extends ChangeNotifier {
     currRecord = MedicalRecord()
       ..uid = "med_rec_${currModule?.name}_${formatDate(DateTime.now())}"
       ..createdAt = formatDate(DateTime.now())
-      ..module = currModule!.name;
+      ..updatedAt = formatDate(DateTime.now())
+      ..module = currModule!.name
+      ..mainQuestion = subModule!;
   }
 
   // After each submodule, store user response as a key-value pair in the medical record object

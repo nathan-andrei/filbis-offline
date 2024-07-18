@@ -60,11 +60,12 @@ class MedicalHistory {
 
 @embedded 
 class MedicalRecord {
-  late String uid; // format -> med_rec_(module_name)_(datetime)
+  late String uid = ""; // format -> med_rec_(module_name)_(datetime)
   late String sessionName = ""; // sorry we didn't implement this rin because not used at all in webapp ^_^
-  late String createdAt;
+  late String createdAt = "";
   late String updatedAt = ""; // as of creation, this isn't utilized at all in web app, so will not be used here yet
-  late String module;
+  late String module = "";
+  late String mainQuestion = "";
 
   List<KeyValuePair> records = List.empty(growable: true);
 }
