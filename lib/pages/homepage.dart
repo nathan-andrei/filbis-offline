@@ -1,4 +1,4 @@
-// ignore_for_file: prefer_const_constructors
+// ignore_for_file: prefer_const_constructors, non_constant_identifier_names, use_build_context_synchronously
 
 import 'package:filbis_offline/model/collections.dart';
 import 'package:filbis_offline/model/collections_controller.dart';
@@ -130,8 +130,9 @@ class _HomepageState extends State<Homepage> {
       }
     }
 
-    // before going to the next q, record the response to the current one
-    // context.read<FilbisDatabase>().recordResponse(choice, uid);
+    // before going to the next q, record current response to current 
+    // record that's being constructed
+    context.read<FilbisDatabase>().recordResponse(choice);
 
     // END - RESPONSE HANDLING
 
