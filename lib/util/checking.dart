@@ -56,7 +56,7 @@ class VerifyNextReference {
     "buto ug muscle": "buto_and_muscle_module",
     
     "circumcision / mens": "endocrine_module",
-    "pag-tuli/pag-regla": "endocrine_module"
+    "pag-tuli / pag-regla": "endocrine_module"
   };
 
   final checkTriggerFollowUp = ["0 time",

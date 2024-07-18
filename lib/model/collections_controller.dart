@@ -34,7 +34,7 @@ class FilbisDatabase extends ChangeNotifier {
   // Initialize the data from web server to the isar database
   static initDb() async {
     try {
-      var url = Uri.parse('https://4193-115-146-216-254.ngrok-free.app/mobile_download_modules');
+      var url = Uri.http('10.0.2.2:8000', '/mobile_download_modules');
       http.post(url, body: {}).then((response) async {
         var data = json.decode(response.body);
         // for each module in the data, add it to the database
@@ -165,8 +165,8 @@ class FilbisDatabase extends ChangeNotifier {
     
       if ( module != null && module.subModule.isNotEmpty) {
         currModule = module;
-        String? nextSubmodule = currModule?.order[0];
-        setSubModule(nextSubmodule);
+        // String? nextSubmodule = currModule?.order[0];
+        // setSubModule(nextSubmodule);
       } else {
         currQuestion = "Filbis is thinking...";
         currAnswers = ["Retry"];
@@ -228,10 +228,11 @@ class FilbisDatabase extends ChangeNotifier {
   }
 
   // Set language variable
-  void setLanguage(String selLanguage) {
+  Future<void> setLanguage(String selLanguage) async {
     currLanguage = selLanguage;
     debugPrint(currLanguage);
-    setModule("general_module");
+    await setModule("general_module");
+    setSubModule("get-privacy-policy");
     // setGeneral("test");
   }
 

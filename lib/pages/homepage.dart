@@ -23,7 +23,7 @@ class _HomepageState extends State<Homepage> {
   int currSubmoduleIndex = 0; // variable for current subodule index, helps for going back from a follow up Q
   String school = "";
   String idNum = "";
-  String gender = "";
+  String gender = "female";
   bool yesBypass = false;
 
   // Checking internet connecion
@@ -81,6 +81,9 @@ class _HomepageState extends State<Homepage> {
       if (checkModule.generalModule[choice]!.contains("_")) {   // Choice leads to a module
         currSubmoduleIndex = 0; // Reset index counter
         valuepair = ["Module", checkModule.generalModule[choice]!];
+
+        if (valuepair[1] == "endocrine_module") currSubmoduleIndex = 1;
+
         debugPrint("FIRST IF: ${valuepair.toString()}");
         return valuepair;
       } 
@@ -159,6 +162,8 @@ class _HomepageState extends State<Homepage> {
     // insert heart and lungs bypass here
     heartLungsModuleBypass(currModule, choice, subModule);
 
+    if ( subModule == "get-sex" ) gender = choice;
+
     List<String> nextRoute = determineNext(choice, FilbisDB.currSub!, currModule!.order.length);
     // debugPrint(nextRoute.toString());
     if (subModule == "count-situps-amount" || subModule == "count-breathing-exercises-amount" || subModule == "confirm-spasm-remedy-medicine") {
@@ -181,8 +186,6 @@ class _HomepageState extends State<Homepage> {
       // check if record exists for curr school + id combo. if none, make one
       context.read<FilbisDatabase>().checkChildRecord(uid);
     }
-
-  //ADD heart and lungs shit here
     
 
     // before going to the next q, record current response to current 
@@ -196,6 +199,15 @@ class _HomepageState extends State<Homepage> {
     try {
       if ( nextRoute[0] == "Module" ) {
         await FilbisDB.setModule(nextRoute[1]);
+        String? nextSubmodule = FilbisDB.currModule?.order[0] ?? "";
+        debugPrint(FilbisDB.currModule!.order.toString());
+
+        // Endocrine check
+        if (nextRoute[1] == "endocrine_module" && gender == "male") {
+          nextSubmodule = FilbisDB.currModule?.order[1] ?? "";
+        }
+ 
+        FilbisDB.setSubModule(nextSubmodule);
         // debugPrint("currSubModuleIndex: $currSubmoduleIndex"); // D E B U G  PRINT
         return;
       } 
