@@ -34,7 +34,7 @@ class FilbisDatabase extends ChangeNotifier {
   // Initialize the data from web server to the isar database
   static initDb() async {
     try {
-      var url = Uri.http('10.0.2.2:8000', '/mobile_download_modules');
+      var url = Uri.parse('https://453b-115-146-216-254.ngrok-free.app/mobile_download_modules');
       http.post(url, body: {}).then((response) async {
         var data = json.decode(response.body);
         // for each module in the data, add it to the database
@@ -313,24 +313,29 @@ class FilbisDatabase extends ChangeNotifier {
       // upload the data to the web server
       for (var record in child.medicalHistory.medicalRecords) {
         //go through records and upload them
-        var med_rec = {};
+        var medRec = {};
 
-        med_rec["uid"] = child.uid;
+        medRec["childID"] = child.uid;
+        medRec["recordID"] = record.uid;
+        medRec["module"] = record.module;
+        medRec["createdAt"] = record.createdAt;
+        
 
+        int a = 0;
         for (var pair in record.records) {
-          if (pair.key == "uid"){
-            med_rec["sessionID"] = pair.value;
-          }
-          med_rec[pair.key] = pair.value;
+            medRec[pair.key] = pair.value;
         }
 
         // send the data here
-
-
-        // delete db data here
-      print(med_rec);
+        var uri = Uri.parse("https://453b-115-146-216-254.ngrok-free.app/mobile_upload_modules");
+        var response = await http.post(uri, body: jsonEncode(medRec));
+        if (response.statusCode == 200) {
+          // delete the record from the database
+          await isar.writeTxn(() async {
+            await isar.childrenHealthDatas.delete(child.id);
+          });
+        }
       }
-
     }
 
     // upload the data to the web server
