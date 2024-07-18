@@ -1,5 +1,7 @@
 // ignore_for_file: prefer_const_constructors, non_constant_identifier_names, use_build_context_synchronously
 
+import 'dart:async';
+
 import 'package:filbis_offline/model/collections.dart';
 import 'package:filbis_offline/model/collections_controller.dart';
 import 'package:filbis_offline/util/checking.dart';
@@ -7,6 +9,7 @@ import 'package:filbis_offline/widgets/module.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:provider/provider.dart';
+import 'package:internet_connection_checker_plus/internet_connection_checker_plus.dart';
 
 class Homepage extends StatefulWidget {
   const Homepage({super.key});
@@ -23,17 +26,53 @@ class _HomepageState extends State<Homepage> {
   String gender = "";
   bool yesBypass = false;
 
+  // Checking internet connecion
+  bool isConnectedToInternet = false;
+  StreamSubscription? _internetConnectionStreamSubscription;
+
   @override
   void initState() {
+    
     debugPrint("I N I T I A L I Z E D");
     context.read<FilbisDatabase>().getLanguage();
     super.initState();
+
+    _internetConnectionStreamSubscription = 
+      InternetConnection().onStatusChange.listen((event) {
+        debugPrint(event.toString());
+        switch (event) {
+          case InternetStatus.connected:
+            setState(() {
+              isConnectedToInternet = true; 
+            });
+            break;
+
+          case InternetStatus.disconnected: 
+            setState(() {
+              isConnectedToInternet = false; 
+            });
+            break;
+
+          default: 
+            setState(() {
+              isConnectedToInternet = false; 
+            });
+            break;
+        }
+      });
   }
+
+  @override
+  void dispose() {
+    _internetConnectionStreamSubscription?.cancel();
+    super.dispose();
+  }
+
 
   // Based on the choice, determine the route to next question
   List<String> determineNext ( String choice, SubModule submodule, int length ) {
     final checkModule = VerifyNextReference();
-    debugPrint("Choice: $choice");
+    // debugPrint("Choice: $choice");
     late List<String> valuepair;
     debugPrint("Yes Bypass: $yesBypass");
     
@@ -157,7 +196,7 @@ class _HomepageState extends State<Homepage> {
     try {
       if ( nextRoute[0] == "Module" ) {
         await FilbisDB.setModule(nextRoute[1]);
-        debugPrint("currSubModuleIndex: $currSubmoduleIndex"); // D E B U G  PRINT
+        // debugPrint("currSubModuleIndex: $currSubmoduleIndex"); // D E B U G  PRINT
         return;
       } 
       
@@ -165,7 +204,7 @@ class _HomepageState extends State<Homepage> {
       if ( nextRoute[0] == "Submodule" && nextRoute[1] != "END" ) {
         if (!mounted) return;
         FilbisDB.setSubModule(nextRoute[1]);
-        debugPrint("currSubModuleIndex: $currSubmoduleIndex"); // D E B U G  PRINT
+        // debugPrint("currSubModuleIndex: $currSubmoduleIndex"); // D E B U G  PRINT
         return;
       }
 
@@ -179,18 +218,7 @@ class _HomepageState extends State<Homepage> {
       // End of main submodule, go back to general module
       yesBypass = false;
       debugPrint("Finished Submodule");
-      // // Route back to main submodule from follow up 
-      // if (nextRoute[1] == "END" && currSubmoduleIndex < FilbisDB.currModule!.order.length-1 ) {
-      //   FilbisDB.setSubModule(FilbisDB.currModule!.order[currSubmoduleIndex]);
-      // }
-
-      // // Route back to general from finishing submodule
-      // if (nextRoute[1] == "END" && currSubmoduleIndex == FilbisDB.currModule!.order.length-1) {
-      //   currSubmoduleIndex = 0; 
-      //   debugPrint("goNext: Finished Submodule"); // D E B U G  PRINT
-      //   FilbisDB.setGeneral("general_module");
-      // }
-      debugPrint("currSubModuleIndex: $currSubmoduleIndex"); // D E B U G  PRINT
+      // debugPrint("currSubModuleIndex: $currSubmoduleIndex"); // D E B U G  PRINT
       FilbisDB.setGeneral("general-module");
     } catch (e) {
       debugPrint(e.toString());
@@ -238,7 +266,7 @@ class _HomepageState extends State<Homepage> {
               Icons.restart_alt,
               color: Colors.white
             ),
-            onPressed: FilbisDatabase.uploadData,
+            onPressed: () { context.read<FilbisDatabase>().setGeneral("test");},
           ),
         ],
       ),

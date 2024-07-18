@@ -72,7 +72,14 @@ class VerifyNextReference {
                   "sa bandang loob",
                   "yes", 
                   "oo",
-                  "meron"
+                  "meron",
+                  "brownish", 
+                  "bloody", 
+                  "murag chocolate", 
+                  "puwa murag dugo",
+                  "mala-tsokolate",
+                  "mapula parang dugo",
+                  "prescription"
                   ];
 }
 
