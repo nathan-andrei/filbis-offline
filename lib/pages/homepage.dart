@@ -20,6 +20,7 @@ class _HomepageState extends State<Homepage> {
   int currSubmoduleIndex = 0; // variable for current subodule index, helps for going back from a follow up Q
   String school = "";
   String idNum = "";
+  String gender = "";
   bool yesBypass = false;
 
   @override
@@ -34,6 +35,7 @@ class _HomepageState extends State<Homepage> {
     final checkModule = VerifyNextReference();
     debugPrint("Choice: $choice");
     late List<String> valuepair;
+    debugPrint("Yes Bypass: $yesBypass");
     
     // Check if in check_Module.general_module
     if (checkModule.generalModule.containsKey(choice)) {
@@ -62,7 +64,6 @@ class _HomepageState extends State<Homepage> {
       // Follow up question choice is yes and it is the final F-U question
       if ( valuepair[1] == "END" && currSubmoduleIndex < length) currSubmoduleIndex++; 
       debugPrint("THIRD IF: ${valuepair.toString()}");
-      yesBypass = false;
       return valuepair;
     }
 
@@ -77,13 +78,53 @@ class _HomepageState extends State<Homepage> {
 
   }
 
+  void heartLungsModuleBypass (var currModule, var choice, var subModule) {
+    if (currModule!.name == "heart_lungs_module") {
+      //avoid food and drink confirm-avoiding-food-and-drink
+      //number eat/drink probiotic > 1 count-drinks-amount
+      // situps > 1 count-situps-amount
+      // taken antidep confirm-anxiety-remedy-medicine
+      // breathing exer > 1 count-breathing-exercises-amount
+      // massaged > 1 count-massaged-muscle-amount
+      // warm shower > 1 count-shower-amount
+      // painkillers confirm-spasm-remedy-medicine
+      
+      const subModulesToCheck = ["confirm-avoiding-food-and-drinks", "count-drinks-amount", 
+                                "count-situps-amount", "confirm-anxiety-remedy-medicine", "count-breathing-exercises-amount",
+                                "count-massaged-muscle-amount", "count-shower-amount", "confirm-spasm-remedy-medicine"];
+
+      debugPrint("Yes Bypass: $yesBypass");
+      if (subModulesToCheck.contains(subModule) && yesBypass == false) {
+        const noFlags = ["0", "dili", "wala", "no", "not sure", "hindi"];
+        for (var flag in noFlags) {
+          yesBypass = true;
+          if(choice.contains(flag)){
+            yesBypass = false;
+            break;
+          } else if (!choice.contains(flag) && subModule == "confirm-avoiding-food-and-drinks") {
+            yesBypass = true;
+            break;
+          }
+        }
+      }
+    }
+  }
+
   void goNext ( String choice ) async {
     var FilbisDB = context.read<FilbisDatabase>();
     var currModule = FilbisDB.currModule;
     String uid = "-";
+
+
+    var subModule = FilbisDB.subModule!;
+    // insert heart and lungs bypass here
+    heartLungsModuleBypass(currModule, choice, subModule);
+
     List<String> nextRoute = determineNext(choice, FilbisDB.currSub!, currModule!.order.length);
     // debugPrint(nextRoute.toString());
-    
+    if (subModule == "count-situps-amount" || subModule == "count-breathing-exercises-amount" || subModule == "confirm-spasm-remedy-medicine") {
+        yesBypass = false;
+      }
     // RESPONSE HANDLING
 
     debugPrint("nextRoute: ${nextRoute[1]}");
@@ -103,32 +144,7 @@ class _HomepageState extends State<Homepage> {
     }
 
   //ADD heart and lungs shit here
-    if (currModule.name == "heart_lungs_module") {
-      //avoid food and drink confirm-avoiding-food-and-drink
-      //number eat/drink probiotic > 1 count-drinks-amount
-      // situps > 1 count-situps-amount
-      // taken antidep confirm-anxiety-remedy-medicine
-      // breathing exer > 1 count-breathing-exercises-amount
-      // massaged > 1 count-massaged-muscle-amount
-      // warm shower > 1 count-shower-amount
-      // painkillers confirm-spasm-remedy-medicine
-      
-      const subModulesToCheck = ["confirm-avoiding-food-and-drink", "count-drinks-amount", 
-                                "count-situps-amount", "confirm-anxiety-remedy-medicine", "count-breathing-exercises-amount",
-                                "count-massaged-muscle-amount", "count-shower-amount", "confirm-spasm-remedy-medicine"];
-
-      var subModule = FilbisDB.subModule!;
-
-      if (subModulesToCheck.contains(subModule)) {
-        const noFlags = ["0", "dili", "wala", "no", "not sure", "hindi"];
-        for (var flag in noFlags) {
-          if (!choice.contains(flag)) {
-            yesBypass = true;
-            break;
-          }
-        }
-      }
-    }
+    
 
     // before going to the next q, record current response to current 
     // record that's being constructed
@@ -155,12 +171,13 @@ class _HomepageState extends State<Homepage> {
 
       // Route to next submodule question, works regardless if coming from follow-up or not 
       if ( currSubmoduleIndex < currModule.order.length ) {
-        FilbisDB.setSubModule(currModule.order[currSubmoduleIndex]);
         yesBypass = false;
+        FilbisDB.setSubModule(currModule.order[currSubmoduleIndex]);
         return;
       }
 
       // End of main submodule, go back to general module
+      yesBypass = false;
       debugPrint("Finished Submodule");
       // // Route back to main submodule from follow up 
       // if (nextRoute[1] == "END" && currSubmoduleIndex < FilbisDB.currModule!.order.length-1 ) {

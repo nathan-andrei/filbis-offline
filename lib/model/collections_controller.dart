@@ -100,6 +100,7 @@ class FilbisDatabase extends ChangeNotifier {
                 });
               }
             }
+            break;
           }
         }
       });
@@ -312,7 +313,7 @@ class FilbisDatabase extends ChangeNotifier {
         }
 
         // send the data here
-        
+
 
         // delete db data here
       print(med_rec);
