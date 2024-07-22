@@ -39,6 +39,11 @@ class FilbisDatabase extends ChangeNotifier {
       http.post(url, body: {}).then((response) async {
         var data = json.decode(response.body);
         // for each module in the data, add it to the database
+        // wipe the database first
+        await isar.writeTxn(() async {
+          await isar.modules.where().deleteAll();
+        });
+
         for (var key in data.keys) {
           final mod = Module()..name = key;
           await isar.writeTxn(() async {
@@ -110,6 +115,9 @@ class FilbisDatabase extends ChangeNotifier {
     } catch (e) {
         debugPrint(e.toString());
     }
+
+    debugPrint("Database initialized");
+    return;
   }
 
   Future<void> pushRecordsToDb() async {
@@ -340,8 +348,6 @@ class FilbisDatabase extends ChangeNotifier {
         }
       }
     }
-
-    // upload the data to the web server
   }
 }
 

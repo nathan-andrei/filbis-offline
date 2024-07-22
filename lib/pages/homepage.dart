@@ -271,7 +271,7 @@ class _HomepageState extends State<Homepage> {
               Icons.settings,
               color: Colors.white,
             ),
-            onPressed: FilbisDatabase.initDb,
+            onPressed: () => _showConfirmationDialog(context),
           ),
           IconButton(
             icon: Icon(
@@ -284,5 +284,64 @@ class _HomepageState extends State<Homepage> {
       ),
       body: ModulePage(onButtonPressed: returnResponse),
     );
+  }
+
+  void _showConfirmationDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Please Confirm'),
+          content: const Text('Do you want to download the latest data?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _showLoadingDialog(context);
+                _initDb(context);
+              },
+              child: const Text('Confirm'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showLoadingDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return Dialog(
+          backgroundColor: Colors.white,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: const [
+                CircularProgressIndicator(),
+                SizedBox(height: 15),
+                Text('Loading...'),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Future<void> _initDb(BuildContext context) async {
+    // Simulate a network request or any async task
+    await FilbisDatabase.initDb();
+
+    // Close the loading dialog
+    Navigator.of(context).pop();
   }
 }
