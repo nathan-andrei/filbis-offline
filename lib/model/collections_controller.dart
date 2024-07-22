@@ -34,7 +34,8 @@ class FilbisDatabase extends ChangeNotifier {
   // Initialize the data from web server to the isar database
   static initDb() async {
     try {
-      var url = Uri.parse('https://453b-115-146-216-254.ngrok-free.app/mobile_download_modules');
+      // var url = Uri.parse('https://453b-115-146-216-254.ngrok-free.app/mobile_download_modules');
+      var url = Uri.http('10.0.2.2:8000', '/mobile_download_modules');
       http.post(url, body: {}).then((response) async {
         var data = json.decode(response.body);
         // for each module in the data, add it to the database
@@ -90,14 +91,16 @@ class FilbisDatabase extends ChangeNotifier {
             // for each 'submodule' in mobile_routes
             for (var subKey in subModules.keys) {
               // loop through the current submodule's order list and add each item to matching module's order list
-              for (var order in subModules[subKey]["order"]) {
-                await isar.writeTxn(() async {
-                  // get the module whose name matches the current mobile_routes submodule
-                  final module = await isar.modules.filter().nameEqualTo(subKey).findFirst();
-                  module!.order = List.from(module.order, growable: true);
-                  module.order.add(order);
-                  await isar.modules.put(module);
-                });
+              if (subKey != 'ache_associations') {
+                for (var order in subModules[subKey]["order"]) {
+                  await isar.writeTxn(() async {
+                    // get the module whose name matches the current mobile_routes submodule
+                    final module = await isar.modules.filter().nameEqualTo(subKey).findFirst();
+                    module!.order = List.from(module.order, growable: true);
+                    module.order.add(order);
+                    await isar.modules.put(module);
+                  });
+                }
               }
             }
             break;
@@ -319,15 +322,15 @@ class FilbisDatabase extends ChangeNotifier {
         medRec["recordID"] = record.uid;
         medRec["module"] = record.module;
         medRec["createdAt"] = record.createdAt;
-        
+        medRec["object"] = record.mainQuestion;
 
-        int a = 0;
         for (var pair in record.records) {
             medRec[pair.key] = pair.value;
         }
 
         // send the data here
-        var uri = Uri.parse("https://453b-115-146-216-254.ngrok-free.app/mobile_upload_modules");
+        // var uri = Uri.parse("https://453b-115-146-216-254.ngrok-free.app/mobile_upload_modules");
+        var uri = Uri.http('10.0.2.2:8000', '/mobile_upload_modules');
         var response = await http.post(uri, body: jsonEncode(medRec));
         if (response.statusCode == 200) {
           // delete the record from the database
