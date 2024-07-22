@@ -157,6 +157,13 @@ class _HomepageState extends State<Homepage> {
     var currModule = FilbisDB.currModule;
     String uid = "-";
 
+    if (choice == ""){
+      debugPrint("Empty choice");
+      var question = "Please enter a valid response. ${FilbisDB.currQuestion!}";
+      FilbisDB.currQuestion = question;
+      FilbisDB.refresh();
+      return;
+    }
 
     var subModule = FilbisDB.subModule!;
     // insert heart and lungs bypass here
@@ -235,7 +242,6 @@ class _HomepageState extends State<Homepage> {
     } catch (e) {
       debugPrint(e.toString());
     }
-
   }
 
   void returnResponse(String choice) {

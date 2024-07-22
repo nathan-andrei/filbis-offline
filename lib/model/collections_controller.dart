@@ -349,6 +349,10 @@ class FilbisDatabase extends ChangeNotifier {
       }
     }
   }
+
+  void refresh() {
+    notifyListeners();
+  }
 }
 
   // void getQuestion() async {
