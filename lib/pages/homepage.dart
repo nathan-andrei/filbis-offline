@@ -278,7 +278,7 @@ class _HomepageState extends State<Homepage> {
               Icons.restart_alt,
               color: Colors.white
             ),
-            onPressed: () { context.read<FilbisDatabase>().setGeneral("test");},
+            onPressed: FilbisDatabase.uploadData,
           ),
         ],
       ),

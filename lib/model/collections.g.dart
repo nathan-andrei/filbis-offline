@@ -3964,24 +3964,34 @@ const MedicalRecordSchema = Schema(
       name: r'createdAt',
       type: IsarType.string,
     ),
-    r'records': PropertySchema(
+    r'mainQuestion': PropertySchema(
       id: 1,
+      name: r'mainQuestion',
+      type: IsarType.string,
+    ),
+    r'module': PropertySchema(
+      id: 2,
+      name: r'module',
+      type: IsarType.string,
+    ),
+    r'records': PropertySchema(
+      id: 3,
       name: r'records',
       type: IsarType.objectList,
       target: r'KeyValuePair',
     ),
     r'sessionName': PropertySchema(
-      id: 2,
+      id: 4,
       name: r'sessionName',
       type: IsarType.string,
     ),
     r'uid': PropertySchema(
-      id: 3,
+      id: 5,
       name: r'uid',
       type: IsarType.string,
     ),
     r'updatedAt': PropertySchema(
-      id: 4,
+      id: 6,
       name: r'updatedAt',
       type: IsarType.string,
     )
@@ -3999,6 +4009,8 @@ int _medicalRecordEstimateSize(
 ) {
   var bytesCount = offsets.last;
   bytesCount += 3 + object.createdAt.length * 3;
+  bytesCount += 3 + object.mainQuestion.length * 3;
+  bytesCount += 3 + object.module.length * 3;
   bytesCount += 3 + object.records.length * 3;
   {
     final offsets = allOffsets[KeyValuePair]!;
@@ -4020,15 +4032,17 @@ void _medicalRecordSerialize(
   Map<Type, List<int>> allOffsets,
 ) {
   writer.writeString(offsets[0], object.createdAt);
+  writer.writeString(offsets[1], object.mainQuestion);
+  writer.writeString(offsets[2], object.module);
   writer.writeObjectList<KeyValuePair>(
-    offsets[1],
+    offsets[3],
     allOffsets,
     KeyValuePairSchema.serialize,
     object.records,
   );
-  writer.writeString(offsets[2], object.sessionName);
-  writer.writeString(offsets[3], object.uid);
-  writer.writeString(offsets[4], object.updatedAt);
+  writer.writeString(offsets[4], object.sessionName);
+  writer.writeString(offsets[5], object.uid);
+  writer.writeString(offsets[6], object.updatedAt);
 }
 
 MedicalRecord _medicalRecordDeserialize(
@@ -4039,16 +4053,18 @@ MedicalRecord _medicalRecordDeserialize(
 ) {
   final object = MedicalRecord();
   object.createdAt = reader.readString(offsets[0]);
+  object.mainQuestion = reader.readString(offsets[1]);
+  object.module = reader.readString(offsets[2]);
   object.records = reader.readObjectList<KeyValuePair>(
-        offsets[1],
+        offsets[3],
         KeyValuePairSchema.deserialize,
         allOffsets,
         KeyValuePair(),
       ) ??
       [];
-  object.sessionName = reader.readString(offsets[2]);
-  object.uid = reader.readString(offsets[3]);
-  object.updatedAt = reader.readString(offsets[4]);
+  object.sessionName = reader.readString(offsets[4]);
+  object.uid = reader.readString(offsets[5]);
+  object.updatedAt = reader.readString(offsets[6]);
   return object;
 }
 
@@ -4062,6 +4078,10 @@ P _medicalRecordDeserializeProp<P>(
     case 0:
       return (reader.readString(offset)) as P;
     case 1:
+      return (reader.readString(offset)) as P;
+    case 2:
+      return (reader.readString(offset)) as P;
+    case 3:
       return (reader.readObjectList<KeyValuePair>(
             offset,
             KeyValuePairSchema.deserialize,
@@ -4069,11 +4089,11 @@ P _medicalRecordDeserializeProp<P>(
             KeyValuePair(),
           ) ??
           []) as P;
-    case 2:
-      return (reader.readString(offset)) as P;
-    case 3:
-      return (reader.readString(offset)) as P;
     case 4:
+      return (reader.readString(offset)) as P;
+    case 5:
+      return (reader.readString(offset)) as P;
+    case 6:
       return (reader.readString(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -4213,6 +4233,278 @@ extension MedicalRecordQueryFilter
     return QueryBuilder.apply(this, (query) {
       return query.addFilterCondition(FilterCondition.greaterThan(
         property: r'createdAt',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<MedicalRecord, MedicalRecord, QAfterFilterCondition>
+      mainQuestionEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'mainQuestion',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MedicalRecord, MedicalRecord, QAfterFilterCondition>
+      mainQuestionGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'mainQuestion',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MedicalRecord, MedicalRecord, QAfterFilterCondition>
+      mainQuestionLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'mainQuestion',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MedicalRecord, MedicalRecord, QAfterFilterCondition>
+      mainQuestionBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'mainQuestion',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MedicalRecord, MedicalRecord, QAfterFilterCondition>
+      mainQuestionStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'mainQuestion',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MedicalRecord, MedicalRecord, QAfterFilterCondition>
+      mainQuestionEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'mainQuestion',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MedicalRecord, MedicalRecord, QAfterFilterCondition>
+      mainQuestionContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'mainQuestion',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MedicalRecord, MedicalRecord, QAfterFilterCondition>
+      mainQuestionMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'mainQuestion',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MedicalRecord, MedicalRecord, QAfterFilterCondition>
+      mainQuestionIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'mainQuestion',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<MedicalRecord, MedicalRecord, QAfterFilterCondition>
+      mainQuestionIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'mainQuestion',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<MedicalRecord, MedicalRecord, QAfterFilterCondition>
+      moduleEqualTo(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'module',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MedicalRecord, MedicalRecord, QAfterFilterCondition>
+      moduleGreaterThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'module',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MedicalRecord, MedicalRecord, QAfterFilterCondition>
+      moduleLessThan(
+    String value, {
+    bool include = false,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'module',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MedicalRecord, MedicalRecord, QAfterFilterCondition>
+      moduleBetween(
+    String lower,
+    String upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'module',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MedicalRecord, MedicalRecord, QAfterFilterCondition>
+      moduleStartsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.startsWith(
+        property: r'module',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MedicalRecord, MedicalRecord, QAfterFilterCondition>
+      moduleEndsWith(
+    String value, {
+    bool caseSensitive = true,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.endsWith(
+        property: r'module',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MedicalRecord, MedicalRecord, QAfterFilterCondition>
+      moduleContains(String value, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.contains(
+        property: r'module',
+        value: value,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MedicalRecord, MedicalRecord, QAfterFilterCondition>
+      moduleMatches(String pattern, {bool caseSensitive = true}) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.matches(
+        property: r'module',
+        wildcard: pattern,
+        caseSensitive: caseSensitive,
+      ));
+    });
+  }
+
+  QueryBuilder<MedicalRecord, MedicalRecord, QAfterFilterCondition>
+      moduleIsEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'module',
+        value: '',
+      ));
+    });
+  }
+
+  QueryBuilder<MedicalRecord, MedicalRecord, QAfterFilterCondition>
+      moduleIsNotEmpty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        property: r'module',
         value: '',
       ));
     });
