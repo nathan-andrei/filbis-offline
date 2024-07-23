@@ -277,7 +277,7 @@ class _HomepageState extends State<Homepage> {
               Icons.settings,
               color: Colors.white,
             ),
-            onPressed: () => _showConfirmationDialog(context),
+            onPressed: () => _showDownloadDialog(context),
           ),
           IconButton(
             icon: Icon(
@@ -290,6 +290,31 @@ class _HomepageState extends State<Homepage> {
       ),
       body: ModulePage(onButtonPressed: returnResponse),
     );
+  }
+
+  void _showDownloadDialog(BuildContext context) {
+    if (isConnectedToInternet) {
+      _showConfirmationDialog(context);
+    } else {
+      // Show dialog that there is no internet connection
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('No Internet Connection '),
+            content: const Text('Please connect to the internet to download the latest data.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+    }
   }
 
   void _showConfirmationDialog(BuildContext context) {
