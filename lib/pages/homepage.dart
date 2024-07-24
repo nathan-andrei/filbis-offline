@@ -280,7 +280,7 @@ class _HomepageState extends State<Homepage> {
               Icons.settings,
               color: Colors.white,
             ),
-            onPressed: () => _showDownloadDialog(context),
+            onPressed: () => _showDownUploadDialog(context, true),
           ),
           IconButton(
             icon: Icon(
@@ -295,17 +295,28 @@ class _HomepageState extends State<Homepage> {
     );
   }
 
-  void _showDownloadDialog(BuildContext context) {
+  void _showDownUploadDialog(BuildContext context, bool download) {
     if (isConnectedToInternet) {
-      _showConfirmationDialog(context);
+      _showConfirmationDialog(context, download);
     } else {
-      // Show dialog that there is no internet connection
-      showDialog(
+      _showNoInternetDialog(context, download);
+    }
+  }
+
+  void _showNoInternetDialog(BuildContext context, bool download) {
+    String dialog = "Please connect to the internet to";
+    if (download) {
+      dialog += "download the latest data.";
+    } else {
+      dialog += "upload the data.";
+    }
+
+    showDialog(
         context: context,
         builder: (BuildContext context) {
           return AlertDialog(
-            title: const Text('No Internet Connection '),
-            content: const Text('Please connect to the internet to download the latest data.'),
+            title: const Text('No Internet Connection'),
+            content: Text(dialog),
             actions: [
               TextButton(
                 onPressed: () {
@@ -317,16 +328,23 @@ class _HomepageState extends State<Homepage> {
           );
         },
       );
-    }
   }
 
-  void _showConfirmationDialog(BuildContext context) {
+
+  void _showConfirmationDialog(BuildContext context, bool download) {
+    String dialog = "Do you want to ";
+    if (download) {
+      dialog += "download the latest data?";
+    } else {
+      dialog += "upload the data?";
+    }
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Please Confirm'),
-          content: const Text('Do you want to download the latest data?'),
+          content: Text(dialog),
           actions: [
             TextButton(
               onPressed: () {
