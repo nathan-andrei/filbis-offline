@@ -159,9 +159,12 @@ class _HomepageState extends State<Homepage> {
 
     if (choice == ""){
       debugPrint("Empty choice");
-      var question = "Please enter a valid response. ${FilbisDB.currQuestion!}";
-      FilbisDB.currQuestion = question;
-      FilbisDB.refresh();
+      var question = FilbisDB.currQuestion!;
+      if (!question.contains("Please enter a valid response.")) {
+        question = "Please enter a valid response. $question";
+        FilbisDB.currQuestion = question;
+        FilbisDB.refresh();
+      }
       return;
     }
 
