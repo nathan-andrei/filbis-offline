@@ -60,6 +60,8 @@ class _HomepageState extends State<Homepage> {
             break;
         }
       });
+
+    _checkDatabase(context);
   }
 
   @override
@@ -159,11 +161,16 @@ class _HomepageState extends State<Homepage> {
 
     if (choice == ""){
       debugPrint("Empty choice");
-      var question = "Please enter a valid response. ${FilbisDB.currQuestion!}";
-      FilbisDB.currQuestion = question;
-      FilbisDB.refresh();
+      var question = FilbisDB.currQuestion!;
+      if (!question.contains("Please enter a valid response.")) {
+        question = "Please enter a valid response. $question";
+        FilbisDB.currQuestion = question;
+        FilbisDB.refresh();
+      }
       return;
     }
+
+
 
     var subModule = FilbisDB.subModule!;
     // insert heart and lungs bypass here
@@ -277,7 +284,7 @@ class _HomepageState extends State<Homepage> {
               Icons.settings,
               color: Colors.white,
             ),
-            onPressed: () => _showConfirmationDialog(context),
+            onPressed: () => _showDownUploadDialog(context, true),
           ),
           IconButton(
             icon: Icon(
@@ -292,13 +299,113 @@ class _HomepageState extends State<Homepage> {
     );
   }
 
-  void _showConfirmationDialog(BuildContext context) {
+  Future<void> _checkDatabase(BuildContext context) async {
+    bool isEmpty = await FilbisDatabase.isDatabaseEmpty();
+    if (isEmpty) {
+      if(isConnectedToInternet) {
+        _showEmptyDatabaseDialog(context);
+      } else {
+        _showNoInternetAndEmptyDbDialog(context);
+      }
+    }
+    return;
+  }
+
+  void _showEmptyDatabaseDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Empty Database'),
+          content: const Text('The database is empty. Please download the latest data.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _showLoadingDialog(context);
+                _initDb(context);
+              },
+              child: const Text('Download'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showNoInternetAndEmptyDbDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Download required'),
+          content: const Text('Please connect to the internet to download the latest data.'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                if (isConnectedToInternet) {
+                  Navigator.of(context).pop();
+                  _showLoadingDialog(context);
+                  _initDb(context);
+                }
+              },
+              child: const Text('Retry'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showDownUploadDialog(BuildContext context, bool download) {
+    if (isConnectedToInternet) {
+      _showConfirmationDialog(context, download);
+    } else {
+      _showNoInternetDialog(context, download);
+    }
+  }
+
+  void _showNoInternetDialog(BuildContext context, bool download) {
+    String dialog = "Please connect to the internet to";
+    if (download) {
+      dialog += "download the latest data.";
+    } else {
+      dialog += "upload the data.";
+    }
+
+    showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: const Text('No Internet Connection'),
+            content: Text(dialog),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: const Text('OK'),
+              ),
+            ],
+          );
+        },
+      );
+  }
+
+  void _showConfirmationDialog(BuildContext context, bool download) {
+    String dialog = "Do you want to ";
+    if (download) {
+      dialog += "download the latest data?";
+    } else {
+      dialog += "upload the data?";
+    }
+
     showDialog(
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Please Confirm'),
-          content: const Text('Do you want to download the latest data?'),
+          content: Text(dialog),
           actions: [
             TextButton(
               onPressed: () {
@@ -310,7 +417,11 @@ class _HomepageState extends State<Homepage> {
               onPressed: () {
                 Navigator.of(context).pop();
                 _showLoadingDialog(context);
-                _initDb(context);
+                if (download) {
+                  _initDb(context);
+                } else {
+                  _uploadData(context);
+                }
               },
               child: const Text('Confirm'),
             ),
@@ -349,5 +460,36 @@ class _HomepageState extends State<Homepage> {
 
     // Close the loading dialog
     Navigator.of(context).pop();
+    _showSuccessDialog(context);
   }
+
+  Future<void> _uploadData(BuildContext context) async {
+    // Simulate a network request or any async task
+    await FilbisDatabase.uploadData();
+
+    // Close the loading dialog
+    Navigator.of(context).pop();
+    _showSuccessDialog(context);
+  }
+
+  void _showSuccessDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Success'),
+          content: const Text('You are good to go!'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+  
 }
