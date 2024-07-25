@@ -5,7 +5,7 @@ class MyButton extends StatelessWidget {
   final String child;
   final ValueChanged<String> onPressed;
 
-  MyButton({required this.child, required this.onPressed});
+  const MyButton({super.key, required this.child, required this.onPressed});
 
   @override
   Widget build(BuildContext context) {
@@ -27,7 +27,7 @@ class MyButton extends StatelessWidget {
         ),
         child: AutoSizeText(
           child,
-          style: TextStyle(
+          style: const TextStyle(
             color: Colors.white,
             fontFamily: 'Shrikhand',
           )

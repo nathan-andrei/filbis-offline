@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:ffi';
 import 'package:filbis_offline/model/collections.dart';
 import 'package:filbis_offline/util/translation_extension.dart';
 import 'package:flutter/material.dart'; 
@@ -315,7 +314,7 @@ class FilbisDatabase extends ChangeNotifier {
   }
 
    //Upload data to the web server
-  static void uploadData() async {
+  static Future<void> uploadData() async {
     // get all data from the ChildrenHealthData
 
     var data = await isar.childrenHealthDatas.where().findAll();
@@ -348,10 +347,16 @@ class FilbisDatabase extends ChangeNotifier {
         }
       }
     }
+
+    return;
   }
 
   void refresh() {
     notifyListeners();
+  }
+
+  static Future<bool> isDatabaseEmpty() async {    
+    return (await isar.modules.where().findAll()).isEmpty;
   }
 }
 

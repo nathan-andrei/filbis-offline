@@ -21,14 +21,12 @@ class _ModuleState extends State<ModulePage> {
 
   @override
   Widget build(BuildContext context) {
-
-
     return Padding(
         padding: const EdgeInsets.all(50.0),
         child: Center(
           child: Column(
             children: [
-              Spacer(flex: 1,),
+              const Spacer(flex: 1,),
               AutoSizeText(
                 context.read<FilbisDatabase>().currQuestion!,
                 textAlign: TextAlign.center,
@@ -73,7 +71,7 @@ class _ModuleState extends State<ModulePage> {
                             ),
                           ),
                         ),
-                        SizedBox(height: 15,),
+                        const SizedBox(height: 15,),
                         Expanded(
                           child: ListView.builder(
                             itemCount: context.watch<FilbisDatabase>().currAnswers!.isEmpty ? 1 : context.watch<FilbisDatabase>().currAnswers!.length ,
@@ -95,7 +93,7 @@ class _ModuleState extends State<ModulePage> {
                   )
                 ),
               ),
-              Spacer(flex: 2,),
+              const Spacer(flex: 2,),
             ],
           ),
         ),
