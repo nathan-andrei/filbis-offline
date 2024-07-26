@@ -19,6 +19,8 @@ class FilbisDatabase extends ChangeNotifier {
   late String currChildID = "";
   late String currLanguage;
 
+  static String webServer = "https://3065-180-190-42-196.ngrok-free.app";
+
   List<MedicalRecord> storedRecords = [];
 
   // Initializes IsarDB
@@ -33,8 +35,8 @@ class FilbisDatabase extends ChangeNotifier {
   // Initialize the data from web server to the isar database
   static initDb() async {
     try {
-      // var url = Uri.parse('https://453b-115-146-216-254.ngrok-free.app/mobile_download_modules');
-      var url = Uri.http('10.0.2.2:8000', '/mobile_download_modules');
+      var url = Uri.parse('$webServer/mobile_download_modules');
+      // var url = Uri.http('10.0.2.2:8000', '/mobile_download_modules');
       http.post(url, body: {}).then((response) async {
         var data = json.decode(response.body);
         // for each module in the data, add it to the database
@@ -336,8 +338,8 @@ class FilbisDatabase extends ChangeNotifier {
         }
 
         // send the data here
-        // var uri = Uri.parse("https://453b-115-146-216-254.ngrok-free.app/mobile_upload_modules");
-        var uri = Uri.http('10.0.2.2:8000', '/mobile_upload_modules');
+        var uri = Uri.parse("$webServer/mobile_upload_modules");
+        // var uri = Uri.http('10.0.2.2:8000', '/mobile_upload_modules');
         var response = await http.post(uri, body: jsonEncode(medRec));
         if (response.statusCode == 200) {
           // delete the record from the database
