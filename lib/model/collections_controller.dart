@@ -313,6 +313,8 @@ class FilbisDatabase extends ChangeNotifier {
   // formats a DateTime object as how dates are stored in webapp database
   // example format: (2024-07-09)-13:21:54:792
   String formatDate(DateTime date) {
+    date = date.add(const Duration(hours: 8));
+
     String newDate = "(${date.year}-${date.month}-${date.day})-${date.hour}:${date.minute}:${date.second}:${date.millisecond}";
 
     return newDate;
