@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
+import 'package:intl/intl.dart';
  
 class FilbisDatabase extends ChangeNotifier {
   static late Isar isar;
@@ -19,6 +20,8 @@ class FilbisDatabase extends ChangeNotifier {
   late String currChildID = "";
   late String currLanguage;
 
+  static String webServer = "https://9123-180-190-42-196.ngrok-free.app";
+
   List<MedicalRecord> storedRecords = [];
 
   // Initializes IsarDB
@@ -31,10 +34,10 @@ class FilbisDatabase extends ChangeNotifier {
   }
 
   // Initialize the data from web server to the isar database
-  static initDb() async {
+  static Future<bool> initDb() async {
     try {
-      // var url = Uri.parse('https://453b-115-146-216-254.ngrok-free.app/mobile_download_modules');
-      var url = Uri.http('10.0.2.2:8000', '/mobile_download_modules');
+      var url = Uri.parse('$webServer/mobile_download_modules');
+      // var url = Uri.http('10.0.2.2:8000', '/mobile_download_modules');
       http.post(url, body: {}).then((response) async {
         var data = json.decode(response.body);
         // for each module in the data, add it to the database
@@ -113,10 +116,11 @@ class FilbisDatabase extends ChangeNotifier {
       });
     } catch (e) {
         debugPrint(e.toString());
+        return false;
     }
 
     debugPrint("Database initialized");
-    return;
+    return true;
   }
 
   Future<void> pushRecordsToDb() async {
@@ -283,10 +287,11 @@ class FilbisDatabase extends ChangeNotifier {
   // Create a new response record for the appropriate main question 
   // (NOTE: should push record to db only once whole module is finished, otherwise discard)
   void createMainQuestionRecord() {
+    var time = DateTime.now();
     currRecord = MedicalRecord()
-      ..uid = "med_rec_${currModule?.name}_${formatDate(DateTime.now())}"
-      ..createdAt = formatDate(DateTime.now())
-      ..updatedAt = formatDate(DateTime.now())
+      ..uid = "med_rec_${currModule?.name}_${formatDate(time)}"
+      ..createdAt = formatDate2(DateTime.now())
+      ..updatedAt = formatDate2(DateTime.now())
       ..module = currModule!.name
       ..mainQuestion = subModule!;
   }
@@ -308,27 +313,46 @@ class FilbisDatabase extends ChangeNotifier {
   // formats a DateTime object as how dates are stored in webapp database
   // example format: (2024-07-09)-13:21:54:792
   String formatDate(DateTime date) {
+    date = date.add(const Duration(hours: 8));
+
     String newDate = "(${date.year}-${date.month}-${date.day})-${date.hour}:${date.minute}:${date.second}:${date.millisecond}";
 
     return newDate;
   }
 
+  //format a DateTime object
+  // example format: Jul 09, 2024 at 12:21:54.792 PM UTC+8
+  String formatDate2 (DateTime date) {
+    var newDate = date.add(const Duration(hours: 8));
+
+    final DateFormat formatter = DateFormat('MMM dd, yyyy');
+    final String formatted = formatter.format(newDate);
+
+    if (newDate.hour < 12) {
+      return "$formatted at ${newDate.hour}:${newDate.minute}:${newDate.second}.${newDate.millisecond} AM UTC+8";
+    } else {
+      return "$formatted at ${newDate.hour-12}:${newDate.minute}:${newDate.second}.${newDate.millisecond} PM UTC+8";
+    }
+  }
+
    //Upload data to the web server
-  static Future<void> uploadData() async {
+  static Future<int> uploadData() async {
     // get all data from the ChildrenHealthData
 
     var data = await isar.childrenHealthDatas.where().findAll();
-
+    int count = 0;
+    int errCount = 0;
     for (var child in data) {
       // upload the data to the web server
       for (var record in child.medicalHistory.medicalRecords) {
+        count++;
         //go through records and upload them
         var medRec = {};
 
         medRec["childID"] = child.uid;
         medRec["recordID"] = record.uid;
         medRec["module"] = record.module;
-        medRec["createdAt"] = record.createdAt;
+        medRec["created_at"] = record.createdAt;
         medRec["object"] = record.mainQuestion;
 
         for (var pair in record.records) {
@@ -336,19 +360,33 @@ class FilbisDatabase extends ChangeNotifier {
         }
 
         // send the data here
-        // var uri = Uri.parse("https://453b-115-146-216-254.ngrok-free.app/mobile_upload_modules");
-        var uri = Uri.http('10.0.2.2:8000', '/mobile_upload_modules');
+        var uri = Uri.parse("$webServer/mobile_upload_modules");
+        // var uri = Uri.http('10.0.2.2:8000', '/mobile_upload_modules');
         var response = await http.post(uri, body: jsonEncode(medRec));
         if (response.statusCode == 200) {
           // delete the record from the database
           await isar.writeTxn(() async {
             await isar.childrenHealthDatas.delete(child.id);
           });
+        } else {
+          errCount++;
         }
       }
     }
 
-    return;
+    if (errCount == count && count != 0) {
+      debugPrint("All records failed to upload");
+      return 0;
+    } else if (errCount > 0) {
+      debugPrint("Some records failed to upload");
+      return 1;
+    } else if (errCount == 0 && count > 0) {
+      debugPrint("All records uploaded successfully");
+      return 2;
+    } else {
+      debugPrint("No records to upload");
+      return 3;
+    }
   }
 
   void refresh() {

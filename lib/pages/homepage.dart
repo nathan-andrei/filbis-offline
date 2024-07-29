@@ -291,12 +291,20 @@ class _HomepageState extends State<Homepage> {
               Icons.restart_alt,
               color: Colors.white
             ),
-            onPressed: () { context.read<FilbisDatabase>().setGeneral("test");},
+            onPressed: () => _showDownUploadDialog(context, false),
           ),
         ],
       ),
       body: ModulePage(onButtonPressed: returnResponse),
     );
+  }
+
+  void _showDownUploadDialog(BuildContext context, bool download) {
+    if (isConnectedToInternet) {
+      _showConfirmationDialog(context, download);
+    } else {
+      _showNoInternetDialog(context, download);
+    }
   }
 
   Future<void> _checkDatabase(BuildContext context) async {
@@ -322,8 +330,7 @@ class _HomepageState extends State<Homepage> {
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
-                _showLoadingDialog(context);
-                _initDb(context);
+                _showLoadingDialog(context, true);
               },
               child: const Text('Download'),
             ),
@@ -345,8 +352,7 @@ class _HomepageState extends State<Homepage> {
               onPressed: () {
                 if (isConnectedToInternet) {
                   Navigator.of(context).pop();
-                  _showLoadingDialog(context);
-                  _initDb(context);
+                  _showLoadingDialog(context, true);
                 }
               },
               child: const Text('Retry'),
@@ -355,14 +361,6 @@ class _HomepageState extends State<Homepage> {
         );
       },
     );
-  }
-
-  void _showDownUploadDialog(BuildContext context, bool download) {
-    if (isConnectedToInternet) {
-      _showConfirmationDialog(context, download);
-    } else {
-      _showNoInternetDialog(context, download);
-    }
   }
 
   void _showNoInternetDialog(BuildContext context, bool download) {
@@ -414,14 +412,9 @@ class _HomepageState extends State<Homepage> {
               child: const Text('Cancel'),
             ),
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 Navigator.of(context).pop();
-                _showLoadingDialog(context);
-                if (download) {
-                  _initDb(context);
-                } else {
-                  _uploadData(context);
-                }
+                _showLoadingDialog(context, download);
               },
               child: const Text('Confirm'),
             ),
@@ -431,11 +424,16 @@ class _HomepageState extends State<Homepage> {
     );
   }
 
-  void _showLoadingDialog(BuildContext context) {
+  void _showLoadingDialog(BuildContext context, bool download) {
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
+        if (download) {
+          _initDb(context);
+        } else {
+          _uploadData(context);
+        }
         return Dialog(
           backgroundColor: Colors.white,
           child: Padding(
@@ -456,20 +454,57 @@ class _HomepageState extends State<Homepage> {
 
   Future<void> _initDb(BuildContext context) async {
     // Simulate a network request or any async task
-    await FilbisDatabase.initDb();
+    bool success = await FilbisDatabase.initDb();
 
     // Close the loading dialog
-    Navigator.of(context).pop();
-    _showSuccessDialog(context);
+    if (mounted){
+      Navigator.of(context, rootNavigator: true).pop();
+      if (success) {
+        _showSuccessDialog(context);
+      } else {
+        _showFailDialog(context);
+      }
+    }
   }
 
   Future<void> _uploadData(BuildContext context) async {
     // Simulate a network request or any async task
-    await FilbisDatabase.uploadData();
+    int status = await FilbisDatabase.uploadData();
 
     // Close the loading dialog
-    Navigator.of(context).pop();
-    _showSuccessDialog(context);
+    if (mounted) {
+      debugPrint("Status: $status");
+      Navigator.of(context, rootNavigator: true).pop();
+      if (status == 0) {
+        _showFailDialog(context);
+      } else if (status == 1) {
+        _showNotificationDialog(context, "Some records failed to upload.", "Please try again later","OK");
+      } else if (status == 2) {
+        _showSuccessDialog(context);
+      } else {
+        _showNotificationDialog(context, "No data to upload.", "a","OK");
+      }
+    }
+  }
+
+  void _showNotificationDialog(BuildContext context, String title, String content, String buttonText) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(title),
+          content: Text(content),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text(buttonText),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _showSuccessDialog(BuildContext context) {
@@ -479,6 +514,26 @@ class _HomepageState extends State<Homepage> {
         return AlertDialog(
           title: const Text('Success'),
           content: const Text('You are good to go!'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('OK'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  void _showFailDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('An error occurred'),
+          content: const Text('Oops! Something went wrong. Please try again.'),
           actions: [
             TextButton(
               onPressed: () {
