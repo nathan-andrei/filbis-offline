@@ -20,7 +20,7 @@ class FilbisDatabase extends ChangeNotifier {
   late String currChildID = "";
   late String currLanguage;
 
-  static String webServer = "https://3065-180-190-42-196.ngrok-free.app";
+  static String webServer = "https://9123-180-190-42-196.ngrok-free.app";
 
   List<MedicalRecord> storedRecords = [];
 
@@ -320,8 +320,9 @@ class FilbisDatabase extends ChangeNotifier {
     return newDate;
   }
 
+  //format a DateTime object
+  // example format: Jul 09, 2024 at 12:21:54.792 PM UTC+8
   String formatDate2 (DateTime date) {
-    // change date to UTC + 8
     var newDate = date.add(const Duration(hours: 8));
 
     final DateFormat formatter = DateFormat('MMM dd, yyyy');
@@ -351,7 +352,7 @@ class FilbisDatabase extends ChangeNotifier {
         medRec["childID"] = child.uid;
         medRec["recordID"] = record.uid;
         medRec["module"] = record.module;
-        medRec["createdAt"] = record.createdAt;
+        medRec["created_at"] = record.createdAt;
         medRec["object"] = record.mainQuestion;
 
         for (var pair in record.records) {

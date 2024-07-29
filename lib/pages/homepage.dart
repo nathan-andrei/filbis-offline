@@ -330,8 +330,7 @@ class _HomepageState extends State<Homepage> {
             TextButton(
               onPressed: () {
                 Navigator.of(context).pop();
-                _showLoadingDialog(context);
-                _initDb(context);
+                _showLoadingDialog(context, true);
               },
               child: const Text('Download'),
             ),
@@ -353,8 +352,7 @@ class _HomepageState extends State<Homepage> {
               onPressed: () {
                 if (isConnectedToInternet) {
                   Navigator.of(context).pop();
-                  _showLoadingDialog(context);
-                  _initDb(context);
+                  _showLoadingDialog(context, true);
                 }
               },
               child: const Text('Retry'),
@@ -414,14 +412,9 @@ class _HomepageState extends State<Homepage> {
               child: const Text('Cancel'),
             ),
             TextButton(
-              onPressed: () {
+              onPressed: () async {
                 Navigator.of(context).pop();
-                _showLoadingDialog(context);
-                if (download) {
-                  _initDb(context);
-                } else {
-                  _uploadData(context);
-                }
+                _showLoadingDialog(context, download);
               },
               child: const Text('Confirm'),
             ),
@@ -431,11 +424,16 @@ class _HomepageState extends State<Homepage> {
     );
   }
 
-  void _showLoadingDialog(BuildContext context) {
+  void _showLoadingDialog(BuildContext context, bool download) {
     showDialog(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
+        if (download) {
+          _initDb(context);
+        } else {
+          _uploadData(context);
+        }
         return Dialog(
           backgroundColor: Colors.white,
           child: Padding(
@@ -459,11 +457,13 @@ class _HomepageState extends State<Homepage> {
     bool success = await FilbisDatabase.initDb();
 
     // Close the loading dialog
-    Navigator.of(context).pop();
-    if (success) {
-      _showSuccessDialog(context);
-    } else {
-      _showFailDialog(context);
+    if (mounted){
+      Navigator.of(context, rootNavigator: true).pop();
+      if (success) {
+        _showSuccessDialog(context);
+      } else {
+        _showFailDialog(context);
+      }
     }
   }
 
@@ -472,15 +472,18 @@ class _HomepageState extends State<Homepage> {
     int status = await FilbisDatabase.uploadData();
 
     // Close the loading dialog
-    Navigator.of(context).pop();
-    if (status == 0) {
-      _showFailDialog(context);
-    } else if (status == 1) {
-      _showNotificationDialog(context, "Some records failed to upload.", "Please try again later","OK");
-    } else if (status == 2) {
-      _showSuccessDialog(context);
-    } else {
-      _showNotificationDialog(context, "No data to upload.", "a","OK");
+    if (mounted) {
+      debugPrint("Status: $status");
+      Navigator.of(context, rootNavigator: true).pop();
+      if (status == 0) {
+        _showFailDialog(context);
+      } else if (status == 1) {
+        _showNotificationDialog(context, "Some records failed to upload.", "Please try again later","OK");
+      } else if (status == 2) {
+        _showSuccessDialog(context);
+      } else {
+        _showNotificationDialog(context, "No data to upload.", "a","OK");
+      }
     }
   }
 
