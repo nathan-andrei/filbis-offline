@@ -301,12 +301,14 @@ class FilbisDatabase extends ChangeNotifier {
     debugPrint("currSub: ${currSub?.name}");
 
     // if data_key is not blank, store response in database
-    if (currSub?.mobile?.dataKey != "") {
-      final recordedResponse = KeyValuePair()..key = currSub?.mobile!.dataKey ?? ""..value = choice;
-      debugPrint("logged: ${recordedResponse.key}, ${recordedResponse.value}");
-      currRecord.records.add(recordedResponse);
-    } 
-    else { debugPrint("didn't store anything."); }
+    if (currSub != null) {
+      if (currSub!.mobile!.dataKey != "" && currSub!.mobile!.dataKey != null) {
+        final recordedResponse = KeyValuePair()..key = currSub!.mobile!.dataKey!..value = choice;
+        debugPrint("logged: ${recordedResponse.key}, ${recordedResponse.value}");
+        currRecord.records.add(recordedResponse);
+      } 
+      else { debugPrint("didn't store anything."); }
+    }
   }
 
   // formats a DateTime object as how dates are stored in webapp database
