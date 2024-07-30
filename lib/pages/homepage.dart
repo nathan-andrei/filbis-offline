@@ -322,14 +322,14 @@ class _HomepageState extends State<Homepage> {
               Icons.delete_forever,
               color: Colors.white
             ),
-            onPressed: () => (),
+            onPressed: () => _showLogOutDialog(context, true),
           ),
           IconButton(
             icon: Icon(
               Icons.restart_alt,
               color: Colors.white
             ),
-            onPressed: () => (),
+            onPressed: () => _showLogOutDialog(context, false),
           ),
         ],
       ),
@@ -585,4 +585,48 @@ class _HomepageState extends State<Homepage> {
     );
   }
   
+  void _showLogOutDialog(BuildContext context, bool clearData) {
+    var title = "Log Out";
+    var content = "Are you sure you want to log out";
+    if (clearData) {
+      title += " and Clear Children Data";
+      content += " and clear all children data";
+    }
+    content += "?";
+
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: const Text('Log Out'),
+          content: const Text('Are you sure you want to log out?'),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                if (clearData) {
+                  FilbisDatabase.clearChildrenData();
+                }
+                context.read<FilbisDatabase>().logOut();
+                haveLanguage = false;
+                currSubmoduleIndex = 0; 
+                school = "";
+                idNum = "";
+                gender = "female";
+                yesBypass = false;
+              },
+              child: const Text('Log Out'),
+            ),
+          ],
+        );
+      },
+    );
+  }
 }
