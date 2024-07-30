@@ -6,6 +6,7 @@ import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'dart:math';
  
 class FilbisDatabase extends ChangeNotifier {
   static late Isar isar;
@@ -20,8 +21,8 @@ class FilbisDatabase extends ChangeNotifier {
   late MedicalRecord currRecord = MedicalRecord();
   late String currChildID = "";
   late String currLanguage;
-
-
+  int emergencyFlag = 0;
+  List<String> conditions = [];
 
   static String webServer = "https://healthbotapi-ntt4zfqcuq-as.a.run.app";
 
@@ -139,6 +140,7 @@ class FilbisDatabase extends ChangeNotifier {
           childRecord.medicalHistory.medicalRecords, growable: true
         ); // weird workaround to non-growable list bug
 
+        emergencyFlag = max(physicalFlagging(storedRecords), emergencyFlag);
         childRecord.medicalHistory.medicalRecords.addAll(storedRecords);
         
         await isar.childrenHealthDatas.put(childRecord);
@@ -414,5 +416,289 @@ class FilbisDatabase extends ChangeNotifier {
     await isar.writeTxn(() async {
       await isar.childrenHealthDatas.where().deleteAll();
     });
+  }
+
+  int physicalFlagging(List<MedicalRecord> records) {
+    var yesNoKeys = ['fever-is-on-off','has-experienced-extremeheadache','has-any-form-of-discharge','discharge-hasfoulsmell','had-inserted-object-into-ear','has-pain','has-loss-of-sight','stomach-flu-had-chills','stomach-flu-experienced-dehydration','stomach-flu-food-had-different-smell-or-taste','stomach-flu-experienced-vomitting','rushed-to-hospital','had-blindness','had-experienced-dizziness','had-vomitted','had-passed-out','head-x-confirmation','is-recurring','ache-x-confirmation','heart-lungs-x-confirmation','experienced-shortness-of-breath','hospitalized-due-to-heart-related-issues','mtth-x-confirmation','had-difficult-time-chewing','has-pain-in-the-nose','nosepain-is-recurring','had-insertedobject-into-nose','has-experienced-pain-while-urinating','eyep-x-confirmation','earp-x-confirmation'];
+    var countKeys = ['stomach-flu-vomit-count', 'bowel-times-a-day', 'stomach-flu-boweltimes'];
+    var pain_scale_keys = ['stomach-flu-painintensity', 'pain-intensity', 'swelling-painintensity', 'menstrual-pain-intensity', 'stomach-flu-painintensity', 'urine-pain-intensity', 'discomfortability', 'pain-intensity-due-to-inserted-object'];
+    var temperature_keys = ['current-temperature', 'highest-temperature'];
+    
+    var time_keys = ['duration', 'duration-of-object-in-nose', 'duration-of-nose-pain'];
+    var time_weights = {'7 hours': 1, '8 hours': 2, '1 day': 3, '3 days': 4, '1 week': 5, '2 weeks': 6};
+
+    var choice_effect_keys = ['side-effects'];
+    var choice_color_keys = ['phlegm-color', 'spit-appearance', 'poop-color', 'frequent-urine-color'];
+
+    for (var medicalRecord in records) {
+      if(medicalRecord.module != "mental_health_module" && medicalRecord.module != "general_module") {
+        // for each record in medical_records.records
+        if (medicalRecord.records.length > 1) {
+          for (final record in medicalRecord.records) {
+            if (yesNoKeys.contains(record.key)) {
+              try {
+                if (medicalRecord.mainQuestion != "confirm-ears-fungal-infection" && medicalRecord.mainQuestion != "confirm-head-injury") {
+                  if (['yes', 'sometimes'].contains(record.value)){
+                    medicalRecord.records.add(KeyValuePair()..key = "total_emergency_flag_score" .. value = "1");
+                    return 1;
+                  }
+                }
+              } catch (e) {
+                if (['yes', 'sometimes'].contains(record.value)) {
+                  medicalRecord.records.add(KeyValuePair()..key = "total_emergency_flag_score" .. value = "1");
+                  return 1;
+                }
+              }
+            }
+
+            if (countKeys.contains(record.key)) {
+              try{
+                if (record.key == 'stomach-flu-vomit-count' && int.parse(record.value) >= 3) {
+                  medicalRecord.records.add(KeyValuePair()..key = "total_emergency_flag_score" .. value = "1");
+                  return 1;
+                } else if (int.parse(record.value) >= 4) {
+                  medicalRecord.records.add(KeyValuePair()..key = "total_emergency_flag_score" .. value = "1");
+                  return 1;
+                }
+              } catch (e) {
+                // do nothing
+              }
+            }
+
+            if (pain_scale_keys.contains(record.key)) {
+              try {
+                if (int.parse(record.value) >= 8) {
+                  medicalRecord.records.add(KeyValuePair()..key = "total_emergency_flag_score" .. value = "1");
+                  return 1;
+                }
+              } catch (e) {
+                // do nothing
+              }
+            }
+
+            if (temperature_keys.contains(record.key)) {
+              try {
+                if (float.parse(record.value) >= 39.5) {
+                  medicalRecord.records.add(KeyValuePair()..key = "total_emergency_flag_score" .. value = "1");
+                  return 1;
+                }
+              } catch (e) {
+                // do nothing
+              }
+            }
+
+            if (time_keys.contains(record.key)) {
+              try {
+                if (record.key == "duration") {
+                  var module = medicalRecord.module;
+                  if (module == "buto_and_muscle_module" && time_weights['3 days']! <= time_weights[record.value]!) {
+                    medicalRecord.records.add(KeyValuePair()..key = "total_emergency_flag_score" .. value = "1");
+                    return 1;
+                  } else if (module == "cough_and_cold_module" && time_weights['2 weeks']! <= time_weights[record.value]!) {
+                    medicalRecord.records.add(KeyValuePair()..key = "total_emergency_flag_score" .. value = "1");
+                    return 1;
+                  } else if (module == "heart_and_lungs_module" && time_weights['1 day']! <= time_weights[record.value]!) {
+                    medicalRecord.records.add(KeyValuePair()..key = "total_emergency_flag_score" .. value = "1");
+                    return 1;
+                  }
+                } else {
+                  if (record.key == 'duration-of-object-in-nose' && time_weights['1 day']! <= time_weights[record.value]!) {
+                    medicalRecord.records.add(KeyValuePair()..key = "total_emergency_flag_score" .. value = "1");
+                    return 1;
+                  }
+                  
+                  if (time_weights['3 days']! <= time_weights[record.value]!) {
+                    medicalRecord.records.add(KeyValuePair()..key = "total_emergency_flag_score" .. value = "1");
+                    return 1;
+                  }
+                }
+              } catch (e) {
+                // do nothing
+              }
+            }
+
+            if (choice_effect_keys.contains(record.key)) {
+              try {
+                if (medicalRecord.module == 'allergy_module') {
+                  if (['nausea and vomiting', 'difficulty breathing'].contains(record.value)) {
+                    medicalRecord.records.add(KeyValuePair()..key = "total_emergency_flag_score" .. value = "1");
+                    return 1;
+                  }
+                }
+              } catch (e) {
+                // do nothing
+              }
+            }
+
+            if (choice_color_keys.contains(record.key)) {
+              try {
+                if (medicalRecord.module == 'gu_module') {
+                  if (['brownish', 'bloody red'].contains(record.value)) {
+                    medicalRecord.records.add(KeyValuePair()..key = "total_emergency_flag_score" .. value = "1");
+                    return 1;
+                  }
+
+                  if (['black', 'red', 'brown'].contains(record.value)) {
+                    medicalRecord.records.add(KeyValuePair()..key = "total_emergency_flag_score" .. value = "1");
+                    return 1;
+                  }
+                }
+              } catch (e) {
+                // do nothing
+              }
+            }
+          }
+          medicalRecord.records.add(KeyValuePair()..key = "total_emergency_flag_score" .. value = "0");
+        }
+      }
+    }
+    return 0;
+  }
+
+  void getEndResponse(){
+    if (currModule != null) {
+      switch(currModule!.name) {
+        case "allergy_module":
+        // any of the confirms
+          if (emergencyFlag == 1) {
+            // go to severe
+          } else if (conditions.isEmpty) {
+            // go to healthy
+          } else {
+            // go to custom
+          }
+          break;
+        case "buto_and_muscle_module":
+        // any of the confirms
+          if (conditions.isEmpty) {
+            // go to healthy
+          } else if (emergencyFlag == 1) {
+            // go to severe
+          } else if (conditions.contains('confirm-bone-pain-sitting') && conditions.contains('confirm-bone-pain-standing') && conditions.contains('confirm-bone-pain-walking')){
+            // go to custom_all
+          } else if (conditions.contains('confirm-bone-pain-sitting')){
+            // go to custom_seated
+          } else if (conditions.contains('confirm-bone-pain-standing') || conditions.contains('confirm-bone-pain-walking')){
+            // go to custom_walkrun
+          }
+          break;
+        case 'cough_and_cold_module':
+          //go to cc_response
+          break;
+        case 'daily_living_scale_module':
+        // any of the confirms
+          if (conditions.isEmpty) {
+            //go to healthy
+          } else {
+            // go to custom
+          }
+          break;
+        case 'ear_module':
+          if (emergencyFlag == 1) {
+            // go to severe
+          } else {
+            // go to healthy
+          }
+          break;
+        case 'endocrine_module':
+          if (emergencyFlag == 1) {
+            // go to severe
+          } else {
+            // go to custom
+          }
+          break;
+        case 'eyes_module':
+        // loss of sight
+          if (conditions.isEmpty) {
+            // go to healthy
+          } else {
+            // go to custom
+          }
+          break;
+        case 'family_history_module':
+          if (conditions.isEmpty) {
+            // go to healthy
+          } else {
+            // go to custom
+          }
+          break;
+        case 'gi_module':
+          if (emergencyFlag == 1) {
+            // go to severe
+          } else {
+            // go to healthy
+          }
+          break;
+        case 'gu_module':
+        // urinate pain
+          if (emergencyFlag == 1) {
+            // go to severe
+          } else {
+            // go to healthy
+          }
+          break;
+        case 'head_module':
+          if (emergencyFlag == 1) {
+            // go to severe
+          } else if (conditions.contains('confirm-head-injury')) {
+            // go to custom
+          } else {
+            // go to healthy
+          }
+          break;
+        case 'heart_and_lungs_module':
+        // any confirm
+          if (conditions.isEmpty) {
+            // go to healthy
+          } else {
+            // go to diagnosis
+          }
+          break;
+        case 'immunization_module':
+          // confirms - opposite
+          if (conditions.isEmpty) {
+            // go to healthy
+          } else {
+            // go to custom
+          }
+          break;
+        case 'mouth_throat_teeth_module':
+          // confirms
+          if (conditions.isEmpty) {
+            // go to healthy
+          } else {
+            // go to custom
+          }
+          break;
+        case 'nose_module':
+          // losta shit a goin down
+          break;
+        case 'skin_module':
+          // confirms
+          if (conditions.isEmpty) {
+            //healthy
+          } else {
+            //bad
+          }
+          break;
+
+      }
+    }
+    emergencyFlag = 0;
+    conditions = []; 
+  }
+
+  void logOut() {
+    getLanguage();
+    // clear other vars
+    currRecord = MedicalRecord();
+    currChildID = "";
+    currModule = null; 
+    currSub = null;
+    subModule = null;
+    emergencyFlag = 0;
+    conditions = [];
+    currLanguage = "";
+    notifyListeners();
   }
 }
