@@ -34,8 +34,6 @@ class _HomepageState extends State<Homepage> {
   void initState() {
     
     debugPrint("I N I T I A L I Z E D");
-    context.read<FilbisDatabase>().getLanguage();
-    super.initState();
 
     _internetConnectionStreamSubscription = 
       InternetConnection().onStatusChange.listen((event) {
@@ -62,6 +60,9 @@ class _HomepageState extends State<Homepage> {
       });
 
     _checkDatabase(context);
+
+    context.read<FilbisDatabase>().getLanguage();
+    super.initState();
   }
 
   @override
@@ -156,6 +157,12 @@ class _HomepageState extends State<Homepage> {
 
   void goNext ( String choice ) async {
     var FilbisDB = context.read<FilbisDatabase>();
+    // if currModule is not initialized, return
+    if (FilbisDB.currModule == null) {
+      _checkDatabase(context);
+      return;
+    };
+
     var currModule = FilbisDB.currModule;
     String uid = "-";
 
