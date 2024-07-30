@@ -20,7 +20,7 @@ class FilbisDatabase extends ChangeNotifier {
   late String currChildID = "";
   late String currLanguage;
 
-  static String webServer = "https://9123-180-190-42-196.ngrok-free.app";
+  static String webServer = "https://c4d0-115-146-216-254.ngrok-free.app";
 
   List<MedicalRecord> storedRecords = [];
 
@@ -38,82 +38,81 @@ class FilbisDatabase extends ChangeNotifier {
     try {
       var url = Uri.parse('$webServer/mobile_download_modules');
       // var url = Uri.http('10.0.2.2:8000', '/mobile_download_modules');
-      http.post(url, body: {}).then((response) async {
-        var data = json.decode(response.body);
-        // for each module in the data, add it to the database
-        // wipe the database first
+      var response = await http.post(url, body: {});
+      var data = json.decode(response.body);
+      // for each module in the data, add it to the database
+      // wipe the database first
+      await isar.writeTxn(() async {
+        await isar.modules.where().deleteAll();
+      });
+
+      for (var key in data.keys) {
+        final mod = Module()..name = key;
         await isar.writeTxn(() async {
-          await isar.modules.where().deleteAll();
+          await isar.modules.put(mod);
         });
+        final subModules = data[key];
+        for (var subKey in subModules.keys){
+          if (key != 'mobile_routes') {
+            // for each submodule, set the qckreply and stuff
+            final subMod = SubModule()..name = subKey;
+            final qckReply = QckReply();
+            final questionTranslation = QuestionTranslation();
+            final mobile = Mobile();
 
-        for (var key in data.keys) {
-          final mod = Module()..name = key;
-          await isar.writeTxn(() async {
-            await isar.modules.put(mod);
-          });
-          final subModules = data[key];
-          for (var subKey in subModules.keys){
-            if (key != 'mobile_routes') {
-              // for each submodule, set the qckreply and stuff
-              final subMod = SubModule()..name = subKey;
-              final qckReply = QckReply();
-              final questionTranslation = QuestionTranslation();
-              final mobile = Mobile();
-
-              // set the qckReply
-              if (subModules[subKey]["qck_reply"] != null){
-                qckReply.englishReplies = subModules[subKey]["qck_reply"]["english_replies"].cast<String>();
-                qckReply.cebuanoReplies = subModules[subKey]["qck_reply"]["cebuano_replies"].cast<String>();
-                qckReply.tagalogReplies = subModules[subKey]["qck_reply"]["tagalog_replies"].cast<String>();
-              }
-              // set the questionTranslation
-              if (subModules[subKey]["question_translation"] != null){
-                questionTranslation.englishResponse = subModules[subKey]["question_translation"]["english_response"];
-                questionTranslation.cebuanoResponse = subModules[subKey]["question_translation"]["cebuano_response"];
-                questionTranslation.tagalogResponse = subModules[subKey]["question_translation"]["tagalog_response"];
-              }
-              // set the Mobile
-              if (subModules[subKey]["mobile"] != null){
-                mobile.dataKey = subModules[subKey]["mobile"]["data_key"] ?? "";
-                mobile.yesNext = subModules[subKey]["mobile"]["yes_next"] ?? "";
-                mobile.next = subModules[subKey]["mobile"]["next"] ?? "END";
-              }
-              // set the subModule
-              subMod.qckReply = qckReply;
-              subMod.questionTranslation = questionTranslation;
-              subMod.mobile = mobile;
-              // add the subModule to the module's embedded list
-              await isar.writeTxn(() async {
-                await isar.modules.put(mod..subModule.add(subMod));
-              });
+            // set the qckReply
+            if (subModules[subKey]["qck_reply"] != null){
+              qckReply.englishReplies = subModules[subKey]["qck_reply"]["english_replies"].cast<String>();
+              qckReply.cebuanoReplies = subModules[subKey]["qck_reply"]["cebuano_replies"].cast<String>();
+              qckReply.tagalogReplies = subModules[subKey]["qck_reply"]["tagalog_replies"].cast<String>();
             }
+            // set the questionTranslation
+            if (subModules[subKey]["question_translation"] != null){
+              questionTranslation.englishResponse = subModules[subKey]["question_translation"]["english_response"];
+              questionTranslation.cebuanoResponse = subModules[subKey]["question_translation"]["cebuano_response"];
+              questionTranslation.tagalogResponse = subModules[subKey]["question_translation"]["tagalog_response"];
+            }
+            // set the Mobile
+            if (subModules[subKey]["mobile"] != null){
+              mobile.dataKey = subModules[subKey]["mobile"]["data_key"] ?? "";
+              mobile.yesNext = subModules[subKey]["mobile"]["yes_next"] ?? "";
+              mobile.next = subModules[subKey]["mobile"]["next"] ?? "END";
+            }
+            // set the subModule
+            subMod.qckReply = qckReply;
+            subMod.questionTranslation = questionTranslation;
+            subMod.mobile = mobile;
+            // add the subModule to the module's embedded list
+            await isar.writeTxn(() async {
+              await isar.modules.put(mod..subModule.add(subMod));
+            });
           }
         }
+      }
 
         // iterate through modules again
-        for (var key in data.keys) {
-          // look at mobile_routes module only
-          if (key == 'mobile_routes') {
-          final subModules = data[key];
-            // for each 'submodule' in mobile_routes
-            for (var subKey in subModules.keys) {
-              // loop through the current submodule's order list and add each item to matching module's order list
-              if (subKey != 'ache_associations') {
-                for (var order in subModules[subKey]["order"]) {
-                  await isar.writeTxn(() async {
-                    // get the module whose name matches the current mobile_routes submodule
-                    final module = await isar.modules.filter().nameEqualTo(subKey).findFirst();
-                    module!.order = List.from(module.order, growable: true);
-                    module.order.add(order);
-                    await isar.modules.put(module);
-                  });
-                }
+      for (var key in data.keys) {
+        // look at mobile_routes module only
+        if (key == 'mobile_routes') {
+        final subModules = data[key];
+          // for each 'submodule' in mobile_routes
+          for (var subKey in subModules.keys) {
+            // loop through the current submodule's order list and add each item to matching module's order list
+            if (subKey != 'ache_associations') {
+              for (var order in subModules[subKey]["order"]) {
+                await isar.writeTxn(() async {
+                  // get the module whose name matches the current mobile_routes submodule
+                  final module = await isar.modules.filter().nameEqualTo(subKey).findFirst();
+                  module!.order = List.from(module.order, growable: true);
+                  module.order.add(order);
+                  await isar.modules.put(module);
+                });
               }
             }
-            break;
           }
+          break;
         }
-      });
+      }
     } catch (e) {
         debugPrint(e.toString());
         return false;
