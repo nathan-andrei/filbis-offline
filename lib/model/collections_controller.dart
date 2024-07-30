@@ -312,8 +312,6 @@ class FilbisDatabase extends ChangeNotifier {
   // formats a DateTime object as how dates are stored in webapp database
   // example format: (2024-07-09)-13:21:54:792
   String formatDate(DateTime date) {
-    date = date.add(const Duration(hours: 8));
-
     String newDate = "(${date.year}-${date.month}-${date.day})-${date.hour}:${date.minute}:${date.second}:${date.millisecond}";
 
     return newDate;
@@ -322,15 +320,13 @@ class FilbisDatabase extends ChangeNotifier {
   //format a DateTime object
   // example format: Jul 09, 2024 at 12:21:54.792 PM UTC+8
   String formatDate2 (DateTime date) {
-    var newDate = date.add(const Duration(hours: 8));
-
     final DateFormat formatter = DateFormat('MMM dd, yyyy');
-    final String formatted = formatter.format(newDate);
+    final String formatted = formatter.format(date);
 
-    if (newDate.hour < 12) {
-      return "$formatted at ${newDate.hour}:${newDate.minute}:${newDate.second}.${newDate.millisecond} AM UTC+8";
+    if (date.hour < 12) {
+      return "$formatted at ${date.hour}:${date.minute}:${date.second}.${date.millisecond} AM UTC+8";
     } else {
-      return "$formatted at ${newDate.hour-12}:${newDate.minute}:${newDate.second}.${newDate.millisecond} PM UTC+8";
+      return "$formatted at ${date.hour-12}:${date.minute}:${date.second}.${date.millisecond} PM UTC+8";
     }
   }
 
