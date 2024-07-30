@@ -10,27 +10,31 @@ class MyButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return FractionallySizedBox(
-      widthFactor: 0.6,
-      child: ElevatedButton(
-        onPressed: () {
-          // onPressed(child.toLowerCase());
-          onPressed(child);
-        }, 
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xffed7402), // background color
-          foregroundColor: Colors.white, // text color
-          elevation: 0,
-          textStyle: const TextStyle(
-            fontFamily: 'Shrikhand',
-            fontSize: 24,
-          )
-        ),
-        child: AutoSizeText(
-          child,
-          style: const TextStyle(
-            color: Colors.white,
-            fontFamily: 'Shrikhand',
-          )
+      widthFactor: 0.95,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 5.0),
+        child: ElevatedButton(
+          onPressed: () {
+            // onPressed(child.toLowerCase());
+            onPressed(child);
+          }, 
+          style: ElevatedButton.styleFrom(
+            backgroundColor: const Color(0xff5382d6), // background color
+            foregroundColor: Colors.white, // text color
+            elevation: 5,
+            textStyle: const TextStyle(
+              fontFamily: 'Shrikhand',
+              fontSize: 42,
+            ),
+          ),
+          child: AutoSizeText(
+            child,
+            style: const TextStyle(
+              color: Colors.white,
+              fontFamily: 'Shrikhand',
+            ),
+            textAlign: TextAlign.center,
+          ),
         ),
       ),
     );

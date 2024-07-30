@@ -271,34 +271,65 @@ class _HomepageState extends State<Homepage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xff337641),
+      backgroundColor: const Color(0xffefe0db),
       appBar: AppBar(
-        title: const Text(
-          "FilBis",
-          style: TextStyle(
-            color: Colors.white,
-            fontFamily: 'Shrikhand',
-            fontSize: 24,
-          )
+        backgroundColor: const Color(0xffed7042),
+        leading: Row(
+          mainAxisSize: MainAxisSize.max,
+          children: [
+            Expanded(
+              child: SvgPicture.asset(
+                'assets/images/dost-seal.svg',
+              ),
+            ),
+            SizedBox(width: 10,),
+            Expanded(
+              child: SvgPicture.asset(
+                'assets/images/dlsu-logo.svg',
+              ),
+            ),
+          ],
         ),
-        backgroundColor: const Color.fromARGB(255, 29, 77, 59),
-        leading: SvgPicture.asset(
-          'assets/images/dlsu-logo.svg',
+        title: Center(
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: const Text(
+              "FilBis",
+              style: TextStyle(
+                color: Colors.white,
+                fontFamily: 'Shrikhand',
+              ),
+            ),
+          ),
         ),
         actions: [
           IconButton(
             icon: Icon(
-              Icons.settings,
+              Icons.download,
               color: Colors.white,
             ),
             onPressed: () => _showDownUploadDialog(context, true),
           ),
           IconButton(
             icon: Icon(
-              Icons.restart_alt,
+              Icons.upload,
               color: Colors.white
             ),
             onPressed: () => _showDownUploadDialog(context, false),
+          ),
+          IconButton(
+            icon: Icon(
+              Icons.delete_forever,
+              color: Colors.white
+            ),
+            onPressed: () => (),
+          ),
+          IconButton(
+            icon: Icon(
+              Icons.restart_alt,
+              color: Colors.white
+            ),
+            onPressed: () => (),
           ),
         ],
       ),

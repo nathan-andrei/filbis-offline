@@ -1,3 +1,5 @@
+// ignore_for_file: prefer_const_constructors
+
 import 'package:filbis_offline/widgets/button.dart';
 import 'package:filbis_offline/model/collections.dart';
 import 'package:filbis_offline/model/collections_controller.dart';
@@ -26,61 +28,54 @@ class _ModuleState extends State<ModulePage> {
         child: Center(
           child: Column(
             children: [
-              const Spacer(flex: 1,),
-              AutoSizeText(
-                context.read<FilbisDatabase>().currQuestion!,
-                textAlign: TextAlign.center,
-                maxLines: 3,
-                minFontSize: 18,
-                overflow: TextOverflow.fade,
-                style: const TextStyle(
-                  color: Color(0xfff4e8d8),
-                  fontFamily: 'GoogleSans',
-                  fontSize: 36,
-                  fontWeight: FontWeight.w700,
+              Image.asset(
+                'assets/icons/icon-515.png', 
+                width: 221.5,
+                height: 203,
+              ),
+
+              SizedBox(height: 30,),
+              
+              Container(
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.all(Radius.circular(40)),
+                ),
+                child: Padding(
+                  padding: const EdgeInsets.all(20.0),
+                  child: AutoSizeText(
+                    context.read<FilbisDatabase>().currQuestion!,
+                    textAlign: TextAlign.center,
+                    maxLines: 4,
+                    minFontSize: 14,
+                    overflow: TextOverflow.fade,
+                    style: const TextStyle(
+                      color: Color(0xff312828),
+                      fontFamily: 'GoogleSans',
+                      fontSize: 36,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ),
               ),
-              const Spacer(flex: 1,),
-              Image.asset(
-                'assets/icons/icon-325.png', 
-                width: 150,
-                height: 75,
-              ),
-              FractionallySizedBox(
-                widthFactor: 0.85,
+              
+              Expanded(
                 child: Container(
-                  decoration: const BoxDecoration(
-                    color: Color(0xff7cc089),
-                    borderRadius: BorderRadius.all(Radius.circular(20))
-                  ),
-                  height: 250,
-                  width: 300,
+                  // decoration: const BoxDecoration(
+                  //   color: Colors.black,
+                  // ),
                   padding: const EdgeInsets.all(30),
                   child: Center(
                     child: Column(
                       children: [
-                        const FittedBox(
-                          fit: BoxFit.contain,
-                          child: Text(
-                            "Pumili ng isa sa mga opsyon o magtype sa chatbox.",
-                            style: TextStyle(
-                              color: Color(0xfff4e8d8),
-                              fontFamily: 'GoogleSans',
-                              fontSize: 26,
-                              fontWeight: FontWeight.w700,
-                            ),
-                          ),
-                        ),
-                        const SizedBox(height: 15,),
                         Expanded(
                           child: ListView.builder(
                             itemCount: context.watch<FilbisDatabase>().currAnswers!.isEmpty ? 1 : context.watch<FilbisDatabase>().currAnswers!.length ,
                             itemBuilder: (context, index) {
                               final filbisDB = context.watch<FilbisDatabase>();
                               final answers = filbisDB.currAnswers ?? [];
-                              // debugPrint("SAMPLE");
+                              
                               if ( answers.isEmpty ) {
-                                // debugPrint("HERE");
                                 return TextInputWidget(textController: textController, onPress: widget.onButtonPressed);
                               }
                               // debugPrint(" H E R E ");
@@ -93,7 +88,6 @@ class _ModuleState extends State<ModulePage> {
                   )
                 ),
               ),
-              const Spacer(flex: 2,),
             ],
           ),
         ),

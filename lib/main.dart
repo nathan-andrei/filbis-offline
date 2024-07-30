@@ -3,12 +3,17 @@
 import 'package:filbis_offline/model/collections_controller.dart';
 import 'package:filbis_offline/pages/homepage.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
     // Initialize Database 
   WidgetsFlutterBinding.ensureInitialized();
   await FilbisDatabase.initIsar();
+  SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
 
   runApp(MyApp());
 }
