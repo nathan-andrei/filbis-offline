@@ -371,7 +371,7 @@ class _HomepageState extends State<Homepage> {
   }
 
   void _showNoInternetDialog(BuildContext context, bool download) {
-    String dialog = "Please connect to the internet to";
+    String dialog = "Please connect to the internet to ";
     if (download) {
       dialog += "download the latest data.";
     } else {
