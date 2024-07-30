@@ -365,7 +365,16 @@ class FilbisDatabase extends ChangeNotifier {
         if (response.statusCode == 200) {
           // delete the record from the database
           await isar.writeTxn(() async {
-            await isar.childrenHealthDatas.delete(child.id);
+            final childData = await isar.childrenHealthDatas.filter().uidEqualTo(child.uid).findFirst();
+            if (childData != null) {
+              final modifiableMedicalRecords = List<MedicalRecord>.from(childData.medicalHistory.medicalRecords);
+              final medicalRecordIndex = modifiableMedicalRecords.indexWhere((record2) => record2.uid == record.uid);
+              if (medicalRecordIndex != -1) {
+                modifiableMedicalRecords.removeAt(medicalRecordIndex);
+                childData.medicalHistory.medicalRecords = modifiableMedicalRecords;
+                await isar.childrenHealthDatas.put(childData);
+              }
+            }
           });
         } else {
           errCount++;
@@ -394,6 +403,12 @@ class FilbisDatabase extends ChangeNotifier {
 
   static Future<bool> isDatabaseEmpty() async {    
     return (await isar.modules.where().findAll()).isEmpty;
+  }
+
+  static Future<void> clearChildrenData() async {
+    await isar.writeTxn(() async {
+      await isar.childrenHealthDatas.where().deleteAll();
+    });
   }
 }
 
