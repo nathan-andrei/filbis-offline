@@ -20,7 +20,7 @@ class FilbisDatabase extends ChangeNotifier {
   late String currChildID = "";
   late String currLanguage;
 
-  static String webServer = "https://c4d0-115-146-216-254.ngrok-free.app";
+  static String webServer = "https://healthbotapi-ntt4zfqcuq-as.a.run.app";
 
   List<MedicalRecord> storedRecords = [];
 
