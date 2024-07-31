@@ -79,7 +79,10 @@ class VerifyNextReference {
                   "puwa murag dugo",
                   "mala-tsokolate",
                   "mapula parang dugo",
-                  "prescription"
+                  "prescription",
+                  "oo, aduna",
+                  "oo, meron",
+                  "yes, there is"
                   ];
 }
 

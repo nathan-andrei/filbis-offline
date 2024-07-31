@@ -107,7 +107,11 @@ class _HomepageState extends State<Homepage> {
       }
 
       // Follow up question choice is yes and it is the final F-U question
-      if ( valuepair[1] == "END" && currSubmoduleIndex < length) currSubmoduleIndex++; 
+      if ( valuepair[1] == "END") {
+        if (currSubmoduleIndex < length){ currSubmoduleIndex++;}
+        // go to end response
+        if (currSubmoduleIndex == length) { valuepair[1] = context.read<FilbisDatabase>().getEndResponse();}
+    } 
       debugPrint("THIRD IF: ${valuepair.toString()}");
       return valuepair;
     }
@@ -115,7 +119,12 @@ class _HomepageState extends State<Homepage> {
     // Return next submodule reference
     valuepair = ["Submodule", submodule.mobile!.next!];
 
-    if ( valuepair[1] == "END" && currSubmoduleIndex < length) currSubmoduleIndex++;
+    if ( valuepair[1] == "END") {
+      debugPrint("here");
+        if (currSubmoduleIndex < length){ currSubmoduleIndex++;}
+        // go to end response
+        if (currSubmoduleIndex == length) { valuepair[1] = context.read<FilbisDatabase>().getEndResponse();}
+    } 
   
 
     debugPrint("FOURTH IF: ${["Submodule", submodule.mobile!.next].toString()}");
@@ -161,7 +170,7 @@ class _HomepageState extends State<Homepage> {
     if (FilbisDB.currModule == null) {
       _checkDatabase(context);
       return;
-    };
+    }
 
     var currModule = FilbisDB.currModule;
     String uid = "-";
@@ -177,7 +186,7 @@ class _HomepageState extends State<Homepage> {
       return;
     }
 
-
+    FilbisDB.storeCondition(choice);
 
     var subModule = FilbisDB.subModule!;
     // insert heart and lungs bypass here
@@ -187,9 +196,11 @@ class _HomepageState extends State<Homepage> {
 
     List<String> nextRoute = determineNext(choice, FilbisDB.currSub!, currModule!.order.length);
     // debugPrint(nextRoute.toString());
+
+    // END yes bypass as it has been used
     if (subModule == "count-situps-amount" || subModule == "count-breathing-exercises-amount" || subModule == "confirm-spasm-remedy-medicine") {
         yesBypass = false;
-      }
+    }
     // RESPONSE HANDLING
 
     debugPrint("nextRoute: ${nextRoute[1]}");
@@ -233,8 +244,7 @@ class _HomepageState extends State<Homepage> {
         return;
       } 
       
-      // In a follow-up question, go to next follow up
-      if ( nextRoute[0] == "Submodule" && nextRoute[1] != "END" ) {
+      if ( nextRoute[0] == "Submodule" && nextRoute[1] != "END" && nextRoute[1] != "FIN") {
         if (!mounted) return;
         FilbisDB.setSubModule(nextRoute[1]);
         // debugPrint("currSubModuleIndex: $currSubmoduleIndex"); // D E B U G  PRINT
@@ -599,8 +609,8 @@ class _HomepageState extends State<Homepage> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
-          title: const Text('Log Out'),
-          content: const Text('Are you sure you want to log out?'),
+          title: Text(title),
+          content: Text(content),
           actions: [
             TextButton(
               onPressed: () {
