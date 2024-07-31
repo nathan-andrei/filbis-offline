@@ -1,11 +1,13 @@
 import 'dart:convert';
 import 'package:filbis_offline/model/collections.dart';
+import 'package:filbis_offline/util/checking.dart';
 import 'package:filbis_offline/util/translation_extension.dart';
 import 'package:flutter/material.dart'; 
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
+import 'dart:math';
  
 class FilbisDatabase extends ChangeNotifier {
   static late Isar isar;
@@ -20,8 +22,8 @@ class FilbisDatabase extends ChangeNotifier {
   late MedicalRecord currRecord = MedicalRecord();
   late String currChildID = "";
   late String currLanguage;
-
-
+  int emergencyFlag = 0;
+  List<String> conditions = [];
 
   static String webServer = "https://healthbotapi-ntt4zfqcuq-as.a.run.app";
 
@@ -139,6 +141,7 @@ class FilbisDatabase extends ChangeNotifier {
           childRecord.medicalHistory.medicalRecords, growable: true
         ); // weird workaround to non-growable list bug
 
+        emergencyFlag = max(physicalFlagging(storedRecords), emergencyFlag);
         childRecord.medicalHistory.medicalRecords.addAll(storedRecords);
         
         await isar.childrenHealthDatas.put(childRecord);
@@ -148,7 +151,7 @@ class FilbisDatabase extends ChangeNotifier {
         debugPrint("No child found with uid: $currChildID");
       }
     });
-    storedRecords.clear();
+    storedRecords = [];
   }
 
   void setSubModule( String? nextSubModule ) async {
@@ -168,7 +171,7 @@ class FilbisDatabase extends ChangeNotifier {
 
     // special case to log general-module record properly
     if (subModule == "respond-main-menu") {
-      storedRecords.add(currRecord);
+      if (currRecord.uid != "") { storedRecords.add(currRecord); }
       debugPrint(storedRecords.length.toString());
       await pushRecordsToDb();
       currRecord = MedicalRecord();
@@ -213,9 +216,10 @@ class FilbisDatabase extends ChangeNotifier {
 
     // if we're finished with a module, push stored records to db
     // (but add the last record to storedRecords first)
-    storedRecords.add(currRecord);
+    if (currRecord.uid != "") { storedRecords.add(currRecord); }
     debugPrint(storedRecords.length.toString());
     await pushRecordsToDb();
+    currRecord = MedicalRecord();
     debugPrint("after pushing: ${storedRecords.length.toString()}");
 
     try {
@@ -414,5 +418,374 @@ class FilbisDatabase extends ChangeNotifier {
     await isar.writeTxn(() async {
       await isar.childrenHealthDatas.where().deleteAll();
     });
+  }
+
+  int physicalFlagging(List<MedicalRecord> records) {
+    var yesNoKeys = ['fever-is-on-off','has-experienced-extremeheadache','has-any-form-of-discharge','discharge-hasfoulsmell','had-inserted-object-into-ear','has-pain','has-loss-of-sight','stomach-flu-had-chills','stomach-flu-experienced-dehydration','stomach-flu-food-had-different-smell-or-taste','stomach-flu-experienced-vomitting','rushed-to-hospital','had-blindness','had-experienced-dizziness','had-vomitted','had-passed-out','head-x-confirmation','is-recurring','ache-x-confirmation','heart-lungs-x-confirmation','experienced-shortness-of-breath','hospitalized-due-to-heart-related-issues','mtth-x-confirmation','had-difficult-time-chewing','has-pain-in-the-nose','nosepain-is-recurring','had-insertedobject-into-nose','has-experienced-pain-while-urinating','eyep-x-confirmation','earp-x-confirmation'];
+    var countKeys = ['stomach-flu-vomit-count', 'bowel-times-a-day', 'stomach-flu-boweltimes'];
+    var painScaleKeys = ['stomach-flu-painintensity', 'pain-intensity', 'swelling-painintensity', 'menstrual-pain-intensity', 'stomach-flu-painintensity', 'urine-pain-intensity', 'discomfortability', 'pain-intensity-due-to-inserted-object'];
+    var temperatureKeys = ['current-temperature', 'highest-temperature'];
+    
+    var timeKeys = ['duration', 'duration-of-object-in-nose', 'duration-of-nose-pain'];
+    var timeWeights = {'7 hours': 1, '8 hours': 2, '1 day': 3, '3 days': 4, '1 week': 5, '2 weeks': 6};
+
+    var choiceEffectKeys = ['side-effects'];
+    var choiceColorKeys = ['phlegm-color', 'spit-appearance', 'poop-color', 'frequent-urine-color'];
+
+    for (var medicalRecord in records) {
+      if(medicalRecord.module != "mental_health_module" && medicalRecord.module != "general_module") {
+        // for each record in medical_records.records
+        if (medicalRecord.records.length > 1) {
+          for (final record in medicalRecord.records) {
+            if (yesNoKeys.contains(record.key)) {
+              try {
+                if (medicalRecord.mainQuestion != "confirm-ears-fungal-infection" && medicalRecord.mainQuestion != "confirm-head-injury") {
+                  if (['yes', 'sometimes'].contains(record.value)){
+                    medicalRecord.records.add(KeyValuePair()..key = "total_emergency_flag_score" .. value = "1");
+                    return 1;
+                  }
+                }
+              } catch (e) {
+                if (['yes', 'sometimes'].contains(record.value)) {
+                  medicalRecord.records.add(KeyValuePair()..key = "total_emergency_flag_score" .. value = "1");
+                  return 1;
+                }
+              }
+            }
+
+            if (countKeys.contains(record.key)) {
+              try{
+                if (record.key == 'stomach-flu-vomit-count' && int.parse(record.value) >= 3) {
+                  medicalRecord.records.add(KeyValuePair()..key = "total_emergency_flag_score" .. value = "1");
+                  return 1;
+                } else if (int.parse(record.value) >= 4) {
+                  medicalRecord.records.add(KeyValuePair()..key = "total_emergency_flag_score" .. value = "1");
+                  return 1;
+                }
+              } catch (e) {
+                // do nothing
+              }
+            }
+
+            if (painScaleKeys.contains(record.key)) {
+              try {
+                if (int.parse(record.value) >= 8) {
+                  medicalRecord.records.add(KeyValuePair()..key = "total_emergency_flag_score" .. value = "1");
+                  return 1;
+                }
+              } catch (e) {
+                // do nothing
+              }
+            }
+
+            if (temperatureKeys.contains(record.key)) {
+              try {
+                if (float.parse(record.value) >= 39.5) {
+                  medicalRecord.records.add(KeyValuePair()..key = "total_emergency_flag_score" .. value = "1");
+                  return 1;
+                }
+              } catch (e) {
+                // do nothing
+              }
+            }
+
+            if (timeKeys.contains(record.key)) {
+              try {
+                if (record.key == "duration") {
+                  var module = medicalRecord.module;
+                  if (module == "buto_and_muscle_module" && timeWeights['3 days']! <= timeWeights[record.value]!) {
+                    medicalRecord.records.add(KeyValuePair()..key = "total_emergency_flag_score" .. value = "1");
+                    return 1;
+                  } else if (module == "cough_and_cold_module" && timeWeights['2 weeks']! <= timeWeights[record.value]!) {
+                    medicalRecord.records.add(KeyValuePair()..key = "total_emergency_flag_score" .. value = "1");
+                    return 1;
+                  } else if (module == "heart_and_lungs_module" && timeWeights['1 day']! <= timeWeights[record.value]!) {
+                    medicalRecord.records.add(KeyValuePair()..key = "total_emergency_flag_score" .. value = "1");
+                    return 1;
+                  }
+                } else {
+                  if (record.key == 'duration-of-object-in-nose' && timeWeights['1 day']! <= timeWeights[record.value]!) {
+                    medicalRecord.records.add(KeyValuePair()..key = "total_emergency_flag_score" .. value = "1");
+                    return 1;
+                  }
+                  
+                  if (timeWeights['3 days']! <= timeWeights[record.value]!) {
+                    medicalRecord.records.add(KeyValuePair()..key = "total_emergency_flag_score" .. value = "1");
+                    return 1;
+                  }
+                }
+              } catch (e) {
+                // do nothing
+              }
+            }
+
+            if (choiceEffectKeys.contains(record.key)) {
+              try {
+                if (medicalRecord.module == 'allergy_module') {
+                  if (['nausea and vomiting', 'difficulty breathing'].contains(record.value)) {
+                    medicalRecord.records.add(KeyValuePair()..key = "total_emergency_flag_score" .. value = "1");
+                    return 1;
+                  }
+                }
+              } catch (e) {
+                // do nothing
+              }
+            }
+
+            if (choiceColorKeys.contains(record.key)) {
+              try {
+                if (medicalRecord.module == 'gu_module') {
+                  if (['brownish', 'bloody red'].contains(record.value)) {
+                    medicalRecord.records.add(KeyValuePair()..key = "total_emergency_flag_score" .. value = "1");
+                    return 1;
+                  }
+
+                  if (['black', 'red', 'brown'].contains(record.value)) {
+                    medicalRecord.records.add(KeyValuePair()..key = "total_emergency_flag_score" .. value = "1");
+                    return 1;
+                  }
+                }
+              } catch (e) {
+                // do nothing
+              }
+            }
+          }
+          medicalRecord.records.add(KeyValuePair()..key = "total_emergency_flag_score" .. value = "0");
+        }
+      }
+    }
+    return 0;
+  }
+
+  String getEndResponse(){
+    String next = "FIN";
+
+    if (currModule != null) {
+      switch(currModule!.name) {
+        case "allergy_module":
+        // any of the confirms
+          if (emergencyFlag == 1) {
+            next = "send-allergy-severe";
+          } else if (conditions.isEmpty) {
+            next = "send-allergy-healthy";
+          } else {
+            next = "m-send-allergy-custom2";
+          }
+          break;
+        case "buto_and_muscle_module":
+        // any of the confirms
+          if (conditions.isEmpty) {
+            next = "send-buto-healthy";
+          } else if (emergencyFlag == 1) {
+            next = "send-buto-severe";
+          } else if (conditions.contains('confirm-bone-pain-sitting') && conditions.contains('confirm-bone-pain-standing') && conditions.contains('confirm-bone-pain-walking')){
+            next = "send-buto-custom-all";
+          } else if (conditions.contains('confirm-bone-pain-standing') || conditions.contains('confirm-bone-pain-walking')){
+            next = "send-buto-custom-walkrun";
+          } else if (conditions.contains('confirm-bone-pain-sitting')){
+            next = "send-buto-custom-seated";
+          } 
+          break;
+        case 'cough_and_cold_module':
+          if (emergencyFlag == 1) {
+            next = "send-cc-severe";
+          } else {
+            next = "send-cc-healthy";
+          }
+          break;
+        case 'daily_living_scale_module':
+        // any of the confirms
+          if (conditions.isEmpty) {
+            next = "send-dls-healthy";
+          } else {
+            next = "m-send-dls-custom2";
+          }
+          break;
+        case 'ear_module':
+          if (emergencyFlag == 1) {
+            next = "send-ear-severe";
+          } else {
+            next = "send-ear-healthy";
+          }
+          break;
+        case 'endocrine_module':
+          if (emergencyFlag == 1) {
+            next = "send-endocrine-severe";
+          } else {
+            next = "send-endocrine-healthy";
+          }
+          break;
+        case 'eyes_module':
+        // loss of sight
+          if (conditions.isEmpty) {
+            next = "send-eyes-healthy";
+          } else {
+            next = "m-send-eyes-custom2";
+          }
+          break;
+        case 'family_history_module':
+          if (conditions.isEmpty) {
+            next = "send-family-history-healthy";
+          } else {
+            next = "m-send-family-history-custom2";
+          }
+          break;
+        case 'gi_module':
+          if (emergencyFlag == 1) {
+            next = "send-gi-severe";
+          } else {
+            next = "send-gi-healthy";
+          }
+          break;
+        case 'gu_module':
+        // urinate pain
+          if (conditions.isEmpty) {
+            next = "send-gu-healthy";
+          } else {
+            next = "m-send-gu-severe2";
+          }
+          break;
+        case 'head_module':
+          if (emergencyFlag == 1) {
+            next = "send-head-severe";
+          } else if (conditions.contains('confirm-head-injury')) {
+            next = "send-head-custom";
+          } else {
+            next = "send-head-healthy";
+          }
+          break;
+        case 'heart_and_lungs_module':
+        // any confirm
+          if (conditions.isEmpty) {
+            next = "send-heart-lungs-healthy";
+          } else {
+            next = "m-send-heart-lungs-severe2";
+          }
+          break;
+        case 'immunization_module':
+          // confirms - opposite
+          if (conditions.isEmpty) {
+            next = "send-immunization-healthy";
+          } else {
+            next = "m-send-immunization-custom2";
+          }
+          break;
+        case 'mouth_throat_teeth_module':
+          // confirms
+          if (conditions.isEmpty) {
+            next = "send-mtth-healthy";
+          } else {
+            next = "m-send-mtth-severe2";
+          }
+          break;
+        case 'nose_module':
+          // use emergency flag
+          if (emergencyFlag == 1) {
+            next = "send-nose-custom";
+          } else {
+            next = "send-nose-healthy";
+          }
+          break;
+        case 'skin_module':
+          // confirms
+          if (conditions.isEmpty) {
+            next = "send-skin-healthy";
+          } else {
+            next = "m-send-skin-severe2";
+          }
+          break;
+
+      }
+    }
+    emergencyFlag = 0;
+    conditions = []; 
+    return next;
+  }
+
+  void storeCondition(String choice) {
+    VerifyNextReference verify = VerifyNextReference();
+    var checkTriggerFollowUp = verify.checkTriggerFollowUp;
+    var dataKey = currSub!.mobile!.dataKey ?? "";
+    switch(currModule!.name) {
+        case "allergy_module":
+        // any of the confirms
+          if (dataKey == "allergy-confirmation" && checkTriggerFollowUp.contains(choice)) {
+            conditions.add(currSub!.name);
+          }
+          break;
+        case "buto_and_muscle_module":
+        // any of the confirms
+          if (dataKey == "buto-x-confirmation" && checkTriggerFollowUp.contains(choice)) {
+            conditions.add(currSub!.name);
+          }
+          break;
+        case 'daily_living_scale_module':
+        // any of the confirms
+          if ((dataKey.contains("with-no-assistance") || dataKey == "has-playmates") && !checkTriggerFollowUp.contains(choice)) {
+            conditions.add(currSub!.name);
+          }
+          break;
+        case 'eyes_module':
+        // loss of sight
+          if ((dataKey == "eyep-x-confirmation" || dataKey == "has-loss-of-sight") && checkTriggerFollowUp.contains(choice)) {
+            conditions.add(currSub!.name);
+          }
+          break;
+        case 'family_history_module':
+          if (dataKey == "has_fh_x" && checkTriggerFollowUp.contains(choice)) {
+            conditions.add(currSub!.name);
+          }
+          break;
+        case 'gu_module':
+        // urinate pain
+          //bloody/ brownish
+          if ((dataKey == "has-experienced-pain-while-urinating" || dataKey == "frequent-urine-color") && checkTriggerFollowUp.contains(choice)) {
+            conditions.add(currSub!.name);
+          }
+          break;
+        case 'head_module':
+          if (dataKey == "head-x-confirmation" && checkTriggerFollowUp.contains(choice)) {
+            conditions.add(currSub!.name);
+          }
+          break;
+        case 'heart_and_lungs_module':
+        // any confirm
+          if (dataKey == "heart-lungs-x-confirmation" && checkTriggerFollowUp.contains(choice)) {
+            conditions.add(currSub!.name);
+          }
+          break;
+        case 'immunization_module':
+          // confirms - opposite
+          if(dataKey == "has_immu_x" && !checkTriggerFollowUp.contains(choice)) {
+            conditions.add(currSub!.name);
+          }
+          break;
+        case 'mouth_throat_teeth_module':
+          // confirms
+          if (dataKey == "mtth-x-confirmation" && checkTriggerFollowUp.contains(choice)) {
+            conditions.add(currSub!.name);
+          }
+          break;
+        case 'skin_module':
+          // confirms
+          if (dataKey == "skco-x-confirmation" && checkTriggerFollowUp.contains(choice)) {
+            conditions.add(currSub!.name);
+          }
+          break;
+    }
+  }
+
+  void logOut() {
+    getLanguage();
+    // clear other vars
+    currRecord = MedicalRecord();
+    currChildID = "";
+    currModule = null; 
+    currSub = null;
+    subModule = null;
+    emergencyFlag = 0;
+    conditions = [];
+    currLanguage = "";
+    notifyListeners();
   }
 }

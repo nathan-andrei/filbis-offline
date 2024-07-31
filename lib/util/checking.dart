@@ -80,6 +80,9 @@ class VerifyNextReference {
                   "mala-tsokolate",
                   "mapula parang dugo",
                   "prescription",
+                  "oo, aduna",
+                  "oo, meron",
+                  "yes, there is",
                   "itom",
                   "blackish",
                   "maitim",
@@ -91,10 +94,4 @@ class VerifyNextReference {
                   // "yellow", unsure to include because it might affect other questions
                   // "dilaw"
                   ];
-}
-
-void main() {
-  VerifyNextReference test = VerifyNextReference(); 
-
-  print(test.generalModule["Ulo"]);
 }
