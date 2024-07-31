@@ -95,9 +95,3 @@ class VerifyNextReference {
                   // "dilaw"
                   ];
 }
-
-void main() {
-  VerifyNextReference test = VerifyNextReference(); 
-
-  print(test.generalModule["Ulo"]);
-}

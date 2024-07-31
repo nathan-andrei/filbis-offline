@@ -1,14 +1,12 @@
 import 'dart:convert';
 import 'package:filbis_offline/model/collections.dart';
 import 'package:filbis_offline/util/checking.dart';
-import 'package:filbis_offline/util/checking.dart';
 import 'package:filbis_offline/util/translation_extension.dart';
 import 'package:flutter/material.dart'; 
 import 'package:isar/isar.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:http/http.dart' as http;
 import 'package:intl/intl.dart';
-import 'dart:math';
 import 'dart:math';
  
 class FilbisDatabase extends ChangeNotifier {
@@ -153,7 +151,7 @@ class FilbisDatabase extends ChangeNotifier {
         debugPrint("No child found with uid: $currChildID");
       }
     });
-    storedRecords.clear();
+    storedRecords = [];
   }
 
   void setSubModule( String? nextSubModule ) async {
@@ -173,7 +171,7 @@ class FilbisDatabase extends ChangeNotifier {
 
     // special case to log general-module record properly
     if (subModule == "respond-main-menu") {
-      storedRecords.add(currRecord);
+      if (currRecord.uid != "") { storedRecords.add(currRecord); }
       debugPrint(storedRecords.length.toString());
       await pushRecordsToDb();
       currRecord = MedicalRecord();
@@ -218,9 +216,10 @@ class FilbisDatabase extends ChangeNotifier {
 
     // if we're finished with a module, push stored records to db
     // (but add the last record to storedRecords first)
-    storedRecords.add(currRecord);
+    if (currRecord.uid != "") { storedRecords.add(currRecord); }
     debugPrint(storedRecords.length.toString());
     await pushRecordsToDb();
+    currRecord = MedicalRecord();
     debugPrint("after pushing: ${storedRecords.length.toString()}");
 
     try {
@@ -706,7 +705,7 @@ class FilbisDatabase extends ChangeNotifier {
   void storeCondition(String choice) {
     VerifyNextReference verify = VerifyNextReference();
     var checkTriggerFollowUp = verify.checkTriggerFollowUp;
-    var dataKey = currSub!.mobile!.dataKey;
+    var dataKey = currSub!.mobile!.dataKey ?? "";
     switch(currModule!.name) {
         case "allergy_module":
         // any of the confirms
@@ -722,7 +721,7 @@ class FilbisDatabase extends ChangeNotifier {
           break;
         case 'daily_living_scale_module':
         // any of the confirms
-          if ((dataKey == "dls-confirmation" || dataKey == "has-playmates") && !checkTriggerFollowUp.contains(choice)) {
+          if ((dataKey.contains("with-no-assistance") || dataKey == "has-playmates") && !checkTriggerFollowUp.contains(choice)) {
             conditions.add(currSub!.name);
           }
           break;
