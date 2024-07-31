@@ -16,6 +16,7 @@ class FilbisDatabase extends ChangeNotifier {
   late SubModule? currSub;
   late String? subModule;
   late List<String>? currAnswers = []; 
+  late List<String>? currAnswersEng = [];
   late MedicalRecord currRecord = MedicalRecord();
   late String currChildID = "";
   late String currLanguage;
@@ -176,6 +177,7 @@ class FilbisDatabase extends ChangeNotifier {
     currSub = next;
     currQuestion = next.questionTranslation!.getTranslation(currLanguage)!;
     currAnswers = next.qckReply?.getTranslation(currLanguage);
+    currAnswersEng = next.qckReply?.englishReplies;
     notifyListeners();
   }
 
@@ -215,24 +217,9 @@ class FilbisDatabase extends ChangeNotifier {
     debugPrint("after pushing: ${storedRecords.length.toString()}");
 
     try {
-      var module = await isar.modules.filter().nameEqualTo("general_module").findFirst();
-
-      if (module != null && module.subModule.isNotEmpty) {
-        currModule = module;
-        // currSub = 2;
-        // currSub = 4;
-        currSub = module.subModule.firstWhere((subModule) => subModule.name == "respond-main-menu");
-
-        // Update with actual values from the database
-        // var sampleSub = module.subModule.firstWhere((submodule) => submodule.name == subName);
-        // debugPrint(sampleSub.toString());
-        currQuestion = currSub!.questionTranslation?.getTranslation(currLanguage) ?? "Filbis is thinking...";
-        currAnswers = currSub!.qckReply?.getTranslation(currLanguage) ?? []; // Provide a default value or keep empty
-      } else {
-
-        currQuestion = "Filbis is thinking...";
-        currAnswers = []; 
-      }
+      await setModule("general_module");
+      setSubModule("respond-main-menu");
+    
     } catch (e) {
       // Handle any errors that occur during database access
       debugPrint(e.toString());
@@ -297,8 +284,26 @@ class FilbisDatabase extends ChangeNotifier {
 
   // After each submodule, store user response as a key-value pair in the medical record object
   void recordResponse(String choice) {
+    int index = -1; // index of choice for translating for data storing
     debugPrint("data_key: ${currSub?.mobile?.dataKey}");
     debugPrint("currSub: ${currSub?.name}");
+
+    if (currAnswers!.isNotEmpty) { 
+      for ( int i = 0; i < currAnswers!.length; i++) { 
+        if ( currAnswers![i].toLowerCase() == choice ) {
+          index = i;
+          break;
+        }
+      }
+
+    } 
+
+    // Translate the choice into english for storing
+    debugPrint("currAnswers: $currAnswers Index: $index");
+    if ( index >= 0 ) {
+      debugPrint("currAnswersEng: $currAnswersEng");
+      choice = currAnswersEng![index].toLowerCase();
+    }
 
     // if data_key is not blank, store response in database
     if (currSub != null) {

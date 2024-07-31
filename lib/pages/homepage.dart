@@ -77,7 +77,7 @@ class _HomepageState extends State<Homepage> {
     final checkModule = VerifyNextReference();
     // debugPrint("Choice: $choice");
     late List<String> valuepair;
-    debugPrint("Yes Bypass: $yesBypass");
+    //debugPrint("Yes Bypass: $yesBypass");
     
     // Check if in check_Module.general_module
     if (checkModule.generalModule.containsKey(choice)) {
@@ -108,6 +108,8 @@ class _HomepageState extends State<Homepage> {
 
       // Follow up question choice is yes and it is the final F-U question
       if ( valuepair[1] == "END" && currSubmoduleIndex < length) currSubmoduleIndex++; 
+
+
       debugPrint("THIRD IF: ${valuepair.toString()}");
       return valuepair;
     }
@@ -184,7 +186,7 @@ class _HomepageState extends State<Homepage> {
     heartLungsModuleBypass(currModule, choice, subModule);
 
     if ( subModule == "get-sex" ) gender = choice;
-
+    debugPrint("gender: $gender");
     List<String> nextRoute = determineNext(choice, FilbisDB.currSub!, currModule!.order.length);
     // debugPrint(nextRoute.toString());
     if (subModule == "count-situps-amount" || subModule == "count-breathing-exercises-amount" || subModule == "confirm-spasm-remedy-medicine") {
@@ -224,7 +226,7 @@ class _HomepageState extends State<Homepage> {
         debugPrint(FilbisDB.currModule!.order.toString());
 
         // Endocrine check
-        if (nextRoute[1] == "endocrine_module" && gender == "male") {
+        if (nextRoute[1] == "endocrine_module" && (gender == "male" || gender == "lalaki")) {
           nextSubmodule = FilbisDB.currModule?.order[1] ?? "";
         }
  
@@ -232,7 +234,7 @@ class _HomepageState extends State<Homepage> {
         // debugPrint("currSubModuleIndex: $currSubmoduleIndex"); // D E B U G  PRINT
         return;
       } 
-      
+
       // In a follow-up question, go to next follow up
       if ( nextRoute[0] == "Submodule" && nextRoute[1] != "END" ) {
         if (!mounted) return;
@@ -240,7 +242,7 @@ class _HomepageState extends State<Homepage> {
         // debugPrint("currSubModuleIndex: $currSubmoduleIndex"); // D E B U G  PRINT
         return;
       }
-
+      
       // Route to next submodule question, works regardless if coming from follow-up or not 
       if ( currSubmoduleIndex < currModule.order.length ) {
         yesBypass = false;
@@ -252,7 +254,7 @@ class _HomepageState extends State<Homepage> {
       yesBypass = false;
       debugPrint("Finished Submodule");
       // debugPrint("currSubModuleIndex: $currSubmoduleIndex"); // D E B U G  PRINT
-      FilbisDB.setGeneral("general-module");
+      FilbisDB.setGeneral("general_module");
     } catch (e) {
       debugPrint(e.toString());
     }

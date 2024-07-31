@@ -79,7 +79,17 @@ class VerifyNextReference {
                   "puwa murag dugo",
                   "mala-tsokolate",
                   "mapula parang dugo",
-                  "prescription"
+                  "prescription",
+                  "itom",
+                  "blackish",
+                  "maitim",
+                  "from food",
+                  "dahil sa kinain",
+                  "tungod sa akong nakaon",
+                  "yes, i will try",
+                  "sige, susubukan ko",
+                  // "yellow", unsure to include because it might affect other questions
+                  // "dilaw"
                   ];
 }
 
