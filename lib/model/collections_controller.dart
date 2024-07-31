@@ -21,6 +21,8 @@ class FilbisDatabase extends ChangeNotifier {
   late String currChildID = "";
   late String currLanguage;
 
+
+
   static String webServer = "https://healthbotapi-ntt4zfqcuq-as.a.run.app";
 
   List<MedicalRecord> storedRecords = [];
@@ -155,7 +157,7 @@ class FilbisDatabase extends ChangeNotifier {
 
     // if next submodule is a main question (part of module.order), push current record
     // to stored records and start a new record for the main question
-    if (currModule!.order.contains(subModule)) {
+    if (currModule!.order.contains(subModule) || subModule!.startsWith("confirm-symptom")) {
       debugPrint(storedRecords.length.toString());
       if (currRecord.uid != "") { storedRecords.add(currRecord); }
       debugPrint(storedRecords.length.toString());
@@ -414,9 +416,3 @@ class FilbisDatabase extends ChangeNotifier {
     });
   }
 }
-
-  // void getQuestion() async {
-  //   final module = await isar.modules.filter().nameEqualTo("general_module").findFirst();
-  //   question = module!.subModule[currSub].questionTranslation!.english_response.toString();
-  //   notifyListeners();
-  // }
