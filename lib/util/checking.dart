@@ -26,7 +26,7 @@ class VerifyNextReference {
     "panit": "skin_module",
 
     "head": "head_module",
-    "ulo ": "head_module",
+    "ulo": "head_module",
 
     "ears": "ear_module",
     "tenga": "ear_module",
@@ -36,6 +36,7 @@ class VerifyNextReference {
     "mata": "eyes_module",
 
     "nose": "nose_module", 
+    "ilong": "nose_module",
 
     "heart and lungs": "heart_lungs_module",
     "puso at baga": "heart_lungs_module",

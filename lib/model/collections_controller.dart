@@ -178,6 +178,8 @@ class FilbisDatabase extends ChangeNotifier {
       debugPrint("after pushing: ${storedRecords.length.toString()}");
     }
 
+    debugPrint("[Controller] Current Submodule: ${currModule!.subModule}");
+    debugPrint("[Controller] Next submodule: $nextSubModule");
     SubModule next = currModule!.subModule.firstWhere((submodule) => submodule.name == nextSubModule);
     currSub = next;
     currQuestion = next.questionTranslation!.getTranslation(currLanguage)!;
@@ -243,11 +245,16 @@ class FilbisDatabase extends ChangeNotifier {
   }
 
   // Set language variable
-  Future<void> setLanguage(String selLanguage) async {
+  Future<void> setLanguage(String selLanguage, [bool start = true]) async {
     currLanguage = selLanguage;
     debugPrint(currLanguage);
-    await setModule("general_module");
-    setSubModule("get-privacy-policy");
+    if(start){
+      await setModule("general_module");
+      setSubModule("get-privacy-policy"); //This automatically sets the thing to setmodule, we should be able to pass new params to this.
+    }
+    else{ //I think we can just pass the submodule here
+      setSubModule(currSub!.name);
+    }
     // setGeneral("test");
   }
 
@@ -561,6 +568,7 @@ class FilbisDatabase extends ChangeNotifier {
     String next = "FIN";
 
     if (currModule != null) {
+      debugPrint("currModule name: ${currModule!.name}");
       switch(currModule!.name) {
         case "allergy_module":
         // any of the confirms
@@ -654,7 +662,8 @@ class FilbisDatabase extends ChangeNotifier {
             next = "send-head-healthy";
           }
           break;
-        case 'heart_and_lungs_module':
+        case 'heart_lungs_module':
+          debugPrint("In the get end");
         // any confirm
           if (conditions.isEmpty) {
             next = "send-heart-lungs-healthy";
@@ -694,7 +703,6 @@ class FilbisDatabase extends ChangeNotifier {
             next = "m-send-skin-severe2";
           }
           break;
-
       }
     }
     emergencyFlag = 0;

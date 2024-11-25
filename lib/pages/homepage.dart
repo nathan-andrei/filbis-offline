@@ -5,6 +5,7 @@ import 'dart:async';
 import 'package:filbis_offline/model/collections.dart';
 import 'package:filbis_offline/model/collections_controller.dart';
 import 'package:filbis_offline/util/checking.dart';
+import 'package:filbis_offline/widgets/lang_dropdown.dart';
 import 'package:filbis_offline/widgets/module.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
@@ -79,6 +80,9 @@ class _HomepageState extends State<Homepage> {
     late List<String> valuepair;
     //debugPrint("Yes Bypass: $yesBypass");
     
+    debugPrint("choice: $choice");
+    debugPrint("length: $length");
+    debugPrint("current Language: ${context.read<FilbisDatabase>().currLanguage}");
     // Check if in check_Module.general_module
     if (checkModule.generalModule.containsKey(choice)) {
       if (checkModule.generalModule[choice]!.contains("_")) {   // Choice leads to a module
@@ -99,6 +103,10 @@ class _HomepageState extends State<Homepage> {
     // Check if in yes_list 
     if (checkModule.checkTriggerFollowUp.contains(choice) || yesBypass == true) {
       debugPrint("Yes Bypass: $yesBypass");
+      //Return next submodule reference
+      debugPrint("Module: $submodule");
+      debugPrint("${submodule.mobile}");
+
       valuepair = ["Submodule", submodule.mobile!.yesNext!];
 
       // Choice is yes but no follow up
@@ -116,14 +124,18 @@ class _HomepageState extends State<Homepage> {
       return valuepair;
     }
 
-    // Return next submodule reference
+    //Return next submodule reference
+    debugPrint("Module: $submodule");
+    debugPrint("${submodule.mobile}");
     valuepair = ["Submodule", submodule.mobile!.next!];
 
     if ( valuepair[1] == "END") {
       debugPrint("here");
+      debugPrint("currSubmoduleIndex: $currSubmoduleIndex");
         if (currSubmoduleIndex < length){ currSubmoduleIndex++;}
         // go to end response
-        if (currSubmoduleIndex == length) { valuepair[1] = context.read<FilbisDatabase>().getEndResponse();}
+        if (currSubmoduleIndex == length) { valuepair[1] = context.read<FilbisDatabase>().getEndResponse(); }
+        //Try to change routing here ^
     } 
   
 
@@ -147,7 +159,8 @@ class _HomepageState extends State<Homepage> {
                                 "count-situps-amount", "confirm-anxiety-remedy-medicine", "count-breathing-exercises-amount",
                                 "count-massaged-muscle-amount", "count-shower-amount", "confirm-spasm-remedy-medicine"];
 
-      debugPrint("Yes Bypass: $yesBypass");
+      debugPrint("Yes Bypass heartlung: $yesBypass");
+      debugPrint("In heartLungsModule");
       if (subModulesToCheck.contains(subModule) && yesBypass == false) {
         const noFlags = ["0", "dili", "wala", "no", "not sure", "hindi"];
         for (var flag in noFlags) {
@@ -179,7 +192,19 @@ class _HomepageState extends State<Homepage> {
       debugPrint("Empty choice");
       var question = FilbisDB.currQuestion!;
       if (!question.contains("Please enter a valid response.")) {
-        question = "Please enter a valid response. $question";
+        String replacement;
+        String currLanguage = context.read<FilbisDatabase>().currLanguage;
+
+        if(currLanguage == "english"){
+          replacement = "Please enter a valid response.";
+        }
+        else if(currLanguage == "filipino"){
+          replacement = "Magsulat ng maayos na sagot.";
+        }
+        else{
+          replacement = "[Enter cebuano here] Please enter a valid response.";
+        }
+        question = "$replacement $question";
         FilbisDB.currQuestion = question;
         FilbisDB.refresh();
       }
@@ -275,11 +300,12 @@ class _HomepageState extends State<Homepage> {
     else {
       context.read<FilbisDatabase>().setLanguage(choice.toLowerCase());
       haveLanguage = true;
+      setState(() => haveLanguage = true);
     }
   }
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) { //Is this the header??
     return Scaffold(
       backgroundColor: const Color(0xffefe0db),
       appBar: AppBar(
@@ -313,6 +339,7 @@ class _HomepageState extends State<Homepage> {
           ),
         ),
         actions: [
+          haveLanguage ? LanguageDropDown() : Container(),
           IconButton(
             icon: Icon(
               Icons.download,
@@ -626,6 +653,7 @@ class _HomepageState extends State<Homepage> {
                 }
                 context.read<FilbisDatabase>().logOut();
                 haveLanguage = false;
+                setState(() => haveLanguage = false);
                 currSubmoduleIndex = 0; 
                 school = "";
                 idNum = "";

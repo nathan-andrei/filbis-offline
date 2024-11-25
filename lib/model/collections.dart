@@ -19,6 +19,9 @@ class SubModule {
   QuestionTranslation? questionTranslation;
   Mobile? mobile;
   late String name;
+
+  @override
+  String toString() => "name: $name";
 }
 
 @embedded
@@ -41,6 +44,9 @@ class Mobile {
   String? dataKey;
   String? yesNext;
   String? next;
+
+  @override
+  String toString() => 'Mobile[data_key: $dataKey, \nnext: $next, \nyes_Next: $yesNext]';
 }
 
 @collection
