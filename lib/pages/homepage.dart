@@ -26,6 +26,7 @@ class _HomepageState extends State<Homepage> {
   String idNum = "";
   String gender = "female";
   bool yesBypass = false;
+  List<String?> prevModules = [];
 
   // Checking internet connecion
   bool isConnectedToInternet = false;
@@ -82,6 +83,8 @@ class _HomepageState extends State<Homepage> {
     
     debugPrint("choice: $choice");
     debugPrint("length: $length");
+    debugPrint("Previous modules: $prevModules");
+    
     debugPrint("current Language: ${context.read<FilbisDatabase>().currLanguage}");
     // Check if in check_Module.general_module
     if (checkModule.generalModule.containsKey(choice)) {
@@ -137,7 +140,9 @@ class _HomepageState extends State<Homepage> {
         if (currSubmoduleIndex == length) { valuepair[1] = context.read<FilbisDatabase>().getEndResponse(); }
         //Try to change routing here ^
     } 
-  
+
+    prevModules.add(submodule.mobile!.next);
+    debugPrint("Current prev list: $prevModules");
 
     debugPrint("FOURTH IF: ${["Submodule", submodule.mobile!.next].toString()}");
     return valuepair; 
@@ -202,7 +207,7 @@ class _HomepageState extends State<Homepage> {
           replacement = "Magsulat ng maayos na sagot.";
         }
         else{
-          replacement = "[Enter cebuano here] Please enter a valid response.";
+          replacement = "Dili sakto ang iyong tubag. Palihug i-type utro.";
         }
         question = "$replacement $question";
         FilbisDB.currQuestion = question;
@@ -339,7 +344,7 @@ class _HomepageState extends State<Homepage> {
           ),
         ),
         actions: [
-          haveLanguage ? LanguageDropDown() : Container(),
+          haveLanguage ? LanguageDropDown(currChoice: context.read<FilbisDatabase>().currLanguage) : Container(),
           IconButton(
             icon: Icon(
               Icons.download,

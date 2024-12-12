@@ -35,16 +35,21 @@ class DropDownButtonApp extends StatelessWidget{
 
 // https://api.flutter.dev/flutter/material/DropdownButton-class.html FOR REFERENCE
 class LanguageDropDown extends StatefulWidget{
-  const LanguageDropDown({super.key});
+  String currChoice;
+
+  //currChoice is passed by the homepage so we can tell the dropdown
+  //what was the first language picked
+  LanguageDropDown({required this.currChoice, super.key});
 
   @override
   State<LanguageDropDown> createState() => _LanguageDropDownState();
+
+  set CurrChoice(String val) => currChoice = val;
 }
 
 const List<String> langChoices = ["Filipino", "English", "Cebuano"];
 
 class _LanguageDropDownState extends State<LanguageDropDown>{
-  String dropdownValue = langChoices.first;
 
   @override
   Widget build(BuildContext context){
@@ -54,13 +59,13 @@ class _LanguageDropDownState extends State<LanguageDropDown>{
       ),
       child: DropdownButton<String>( //Try different vals
         dropdownColor: const Color(0xffed7042),
-        value: dropdownValue,
+        value: widget.currChoice[0].toUpperCase() + widget.currChoice.substring(1),
         icon: const Icon(Icons.arrow_downward, color: Colors.white),
         elevation: 16,
         style: const TextStyle(color: Colors.white),
         onChanged: (String? value){
           setState(() {
-            dropdownValue = value!;
+            widget.currChoice = value!;
           });
           context.read<FilbisDatabase>().setLanguage(value!.toLowerCase(), false);
         },
