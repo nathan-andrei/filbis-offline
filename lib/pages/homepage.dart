@@ -94,12 +94,19 @@ class _HomepageState extends State<Homepage> {
 
         if (valuepair[1] == "endocrine_module") currSubmoduleIndex = 1;
 
+        //Going to allergy_module puts you through here
+
         debugPrint("FIRST IF: ${valuepair.toString()}");
         return valuepair;
       } 
 
       // Choice leads to a submodule within general module
       valuepair = ["Submodule", checkModule.generalModule[choice]!];
+      //This is for the start of a general module so should be added. WRONG; is currently 
+      //returning current menu
+      prevModules.add(valuepair[1]);
+      debugPrint("[2]Current prev list: $prevModules");
+
       debugPrint("SECOND IF: ${valuepair.toString()}");
       return valuepair; 
     }
@@ -122,7 +129,11 @@ class _HomepageState extends State<Homepage> {
         if (currSubmoduleIndex < length){ currSubmoduleIndex++;}
         // go to end response
         if (currSubmoduleIndex == length) { valuepair[1] = context.read<FilbisDatabase>().getEndResponse();}
-    } 
+      }
+
+      prevModules.add(submodule.name);
+      debugPrint("[3]Current prev list: $prevModules");
+
       debugPrint("THIRD IF: ${valuepair.toString()}");
       return valuepair;
     }
@@ -141,8 +152,8 @@ class _HomepageState extends State<Homepage> {
         //Try to change routing here ^
     } 
 
-    prevModules.add(submodule.mobile!.next);
-    debugPrint("Current prev list: $prevModules");
+    prevModules.add(submodule.name);
+    debugPrint("[4]Current prev list: $prevModules");
 
     debugPrint("FOURTH IF: ${["Submodule", submodule.mobile!.next].toString()}");
     return valuepair; 
@@ -344,7 +355,16 @@ class _HomepageState extends State<Homepage> {
           ),
         ),
         actions: [
-          haveLanguage ? LanguageDropDown(currChoice: context.read<FilbisDatabase>().currLanguage) : Container(),
+          IconButton(
+            icon: Icon(
+              Icons.arrow_back,
+              color: Colors.white
+            ),
+            onPressed: () => returnResponse("PREV")
+          ),
+          haveLanguage ? 
+            LanguageDropDown(currChoice: context.read<FilbisDatabase>().currLanguage) 
+            : Container(),
           IconButton(
             icon: Icon(
               Icons.download,
@@ -664,6 +684,7 @@ class _HomepageState extends State<Homepage> {
                 idNum = "";
                 gender = "female";
                 yesBypass = false;
+                prevModules = [];
               },
               child: const Text('Log Out'),
             ),
