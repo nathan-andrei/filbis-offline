@@ -5,16 +5,17 @@
 class VerifyNextReference {
   final generalModule = {
     
-    "physical health": "respond-physical-menu",
+    "physical health": "respond-physical-menu", //prev is respond-main-menu for these 4
     "mental health": "mental_health_module",
     "daily living": "daily_living_scale_module",
     "medical history": "respond-mental-menu",
     
     // M E D I C A L HISTORY MODULE 
-    "family history": "family_history_module",
+    "family history": "family_history_module", //prev is respond-mental-menu(sic)
     "vaccination record": "immunization_module", 
 
     //---------- P H Y S I C A L HEALTH MODULE ---------- //
+    //prev for all of these are respond-physical-menu, activates first if
     "allergies": "allergy_module",
 
     "cough, colds, fever": "cough_and_cold_module", 
