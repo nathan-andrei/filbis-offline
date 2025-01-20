@@ -26,7 +26,7 @@ class _HomepageState extends State<Homepage> {
   String idNum = "";
   String gender = "female";
   bool yesBypass = false;
-  List<String?> prevModules = [];
+  List<List<String>> prevModules = [];
 
   // Checking internet connecion
   bool isConnectedToInternet = false;
@@ -104,7 +104,7 @@ class _HomepageState extends State<Homepage> {
       valuepair = ["Submodule", checkModule.generalModule[choice]!];
       //This is for the start of a general module so should be added. WRONG; is currently 
       //returning current menu
-      prevModules.add(valuepair[1]);
+      prevModules.add(valuepair);
       debugPrint("[2]Current prev list: $prevModules");
 
       debugPrint("SECOND IF: ${valuepair.toString()}");
@@ -131,7 +131,7 @@ class _HomepageState extends State<Homepage> {
         if (currSubmoduleIndex == length) { valuepair[1] = context.read<FilbisDatabase>().getEndResponse();}
       }
 
-      prevModules.add(submodule.name);
+      prevModules.add(valuepair);
       debugPrint("[3]Current prev list: $prevModules");
 
       debugPrint("THIRD IF: ${valuepair.toString()}");
@@ -152,7 +152,7 @@ class _HomepageState extends State<Homepage> {
         //Try to change routing here ^
     } 
 
-    prevModules.add(submodule.name);
+    prevModules.add(valuepair);
     debugPrint("[4]Current prev list: $prevModules");
 
     debugPrint("FOURTH IF: ${["Submodule", submodule.mobile!.next].toString()}");
@@ -235,7 +235,19 @@ class _HomepageState extends State<Homepage> {
 
     if ( subModule == "get-sex" ) gender = choice;
     debugPrint("gender: $gender");
-    List<String> nextRoute = determineNext(choice, FilbisDB.currSub!, currModule!.order.length);
+
+    List<String> nextRoute;
+    if(choice == "prev"){
+      debugPrint("prev detected");
+      //prevModules.remove(prevModules.length - 1);
+      nextRoute = prevModules[prevModules.length - 2];
+      //prevModules.remove(prevModules.length - 1);
+      debugPrint(nextRoute[1]);
+    }
+    else{
+      nextRoute = determineNext(choice, FilbisDB.currSub!, currModule!.order.length);
+    }
+
     // debugPrint(nextRoute.toString());
 
     // END yes bypass as it has been used
@@ -293,7 +305,7 @@ class _HomepageState extends State<Homepage> {
       }
       
       // Route to next submodule question, works regardless if coming from follow-up or not 
-      if ( currSubmoduleIndex < currModule.order.length ) {
+      if ( currSubmoduleIndex < currModule!.order.length ) {
         yesBypass = false;
         FilbisDB.setSubModule(currModule.order[currSubmoduleIndex]);
         return;
@@ -355,7 +367,7 @@ class _HomepageState extends State<Homepage> {
           ),
         ),
         actions: [
-          IconButton(
+          IconButton(  //THE BACK BUTTON
             icon: Icon(
               Icons.arrow_back,
               color: Colors.white
@@ -363,7 +375,7 @@ class _HomepageState extends State<Homepage> {
             onPressed: () => returnResponse("PREV")
           ),
           haveLanguage ? 
-            LanguageDropDown(currChoice: context.read<FilbisDatabase>().currLanguage) 
+            LanguageDropDown(currChoice: context.read<FilbisDatabase>().currLanguage) //THE LANGUAGE SELECTOR
             : Container(),
           IconButton(
             icon: Icon(

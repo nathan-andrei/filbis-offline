@@ -1,9 +1,7 @@
 // ignore_for_file: prefer_const_constructors
 
 import 'package:filbis_offline/widgets/button.dart';
-import 'package:filbis_offline/model/collections.dart';
 import 'package:filbis_offline/model/collections_controller.dart';
-import 'package:filbis_offline/util/checking.dart';
 import 'package:filbis_offline/widgets/textinput.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
