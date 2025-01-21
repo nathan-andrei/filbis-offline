@@ -96,6 +96,8 @@ class _HomepageState extends State<Homepage> {
 
         //Going to allergy_module puts you through here
 
+        prevModules.add(valuepair);
+        debugPrint("[1]Current prev list: $prevModules");
         debugPrint("FIRST IF: ${valuepair.toString()}");
         return valuepair;
       } 
@@ -113,12 +115,13 @@ class _HomepageState extends State<Homepage> {
     // Check if in yes_list 
     if (checkModule.checkTriggerFollowUp.contains(choice) || yesBypass == true) {
       debugPrint("Yes Bypass: $yesBypass");
+      debugPrint("approaching third");
       //Return next submodule reference
       debugPrint("Module: $submodule");
       debugPrint("${submodule.mobile}");
 
       valuepair = ["Submodule", submodule.mobile!.yesNext!];
-
+      debugPrint("[Approaching 3rd] $valuepair");
       // Choice is yes but no follow up
       if ( valuepair[1] == "") {
         valuepair[1] = submodule.mobile!.next!;
@@ -239,12 +242,23 @@ class _HomepageState extends State<Homepage> {
     List<String> nextRoute;
     if(choice == "prev"){
       debugPrint("prev detected");
-      //prevModules.remove(prevModules.length - 1);
-      nextRoute = prevModules[prevModules.length - 2];
-      //prevModules.remove(prevModules.length - 1);
+
+      if(prevModules[prevModules.length - 1][0] != "Module"){
+        debugPrint("Is module");
+        prevModules.remove(prevModules[prevModules.length - 1]);
+        debugPrint("Is module2");
+        prevModules.remove(prevModules[prevModules.length - 1]);
+      }
+      else{
+        prevModules.remove(prevModules[prevModules.length - 1]);
+      }
+      nextRoute = prevModules[prevModules.length - 1];
+      //prevModules.remove(prevModules[prevModules.length - 1]);
+      debugPrint("[goNext] prevModules: $prevModules");
       debugPrint(nextRoute[1]);
     }
     else{
+      debugPrint("not prev");
       nextRoute = determineNext(choice, FilbisDB.currSub!, currModule!.order.length);
     }
 
@@ -291,7 +305,9 @@ class _HomepageState extends State<Homepage> {
         if (nextRoute[1] == "endocrine_module" && (gender == "male" || gender == "lalaki")) {
           nextSubmodule = FilbisDB.currModule?.order[1] ?? "";
         }
- 
+
+        prevModules.add(["Submodule", nextSubmodule]);
+        debugPrint("[Module tracker] Previous modules: $prevModules");
         FilbisDB.setSubModule(nextSubmodule);
         // debugPrint("currSubModuleIndex: $currSubmoduleIndex"); // D E B U G  PRINT
         return;
