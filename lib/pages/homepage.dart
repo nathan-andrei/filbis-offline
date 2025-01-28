@@ -96,7 +96,7 @@ class _HomepageState extends State<Homepage> {
 
         //Going to allergy_module puts you through here
 
-        prevModules.add(valuepair);
+        setState(() => prevModules.add(valuepair));
         debugPrint("[1]Current prev list: $prevModules");
         debugPrint("FIRST IF: ${valuepair.toString()}");
         return valuepair;
@@ -106,7 +106,7 @@ class _HomepageState extends State<Homepage> {
       valuepair = ["Submodule", checkModule.generalModule[choice]!];
       //This is for the start of a general module so should be added. WRONG; is currently 
       //returning current menu
-      prevModules.add(valuepair);
+      setState(() => prevModules.add(valuepair));
       debugPrint("[2]Current prev list: $prevModules");
 
       debugPrint("SECOND IF: ${valuepair.toString()}");
@@ -134,7 +134,7 @@ class _HomepageState extends State<Homepage> {
         if (currSubmoduleIndex == length) { valuepair[1] = context.read<FilbisDatabase>().getEndResponse();}
       }
 
-      prevModules.add(valuepair);
+      setState(() => prevModules.add(valuepair));
       debugPrint("[3]Current prev list: $prevModules");
 
       debugPrint("THIRD IF: ${valuepair.toString()}");
@@ -155,7 +155,7 @@ class _HomepageState extends State<Homepage> {
         //Try to change routing here ^
     } 
 
-    prevModules.add(valuepair);
+    setState(() => prevModules.add(valuepair));
     debugPrint("[4]Current prev list: $prevModules");
 
     debugPrint("FOURTH IF: ${["Submodule", submodule.mobile!.next].toString()}");
@@ -243,17 +243,19 @@ class _HomepageState extends State<Homepage> {
     if(choice == "prev"){
       debugPrint("prev detected");
 
-      if(prevModules[prevModules.length - 1][0] != "Module"){
-        debugPrint("Is module");
-        prevModules.remove(prevModules[prevModules.length - 1]);
-        debugPrint("Is module2");
-        prevModules.remove(prevModules[prevModules.length - 1]);
+      List<List<String>> prevModulesTemp = [];
+      if(prevModules[prevModules.length - 2][0] == "Module"){
+        //prevModulesTemp = prevModules.remove(prevModules[prevModules.length - 1]);
+        //prevModulesTemp.remove(prevModulesTemp[prevModulesTemp.length - 1])
+        prevModulesTemp = prevModules.sublist(0, prevModules.length - 2);
       }
       else{
-        prevModules.remove(prevModules[prevModules.length - 1]);
+        //prevModulesTemp = prevModules.remove(prevModules[prevModules.length - 1]);
+        prevModulesTemp = prevModules.sublist(0, prevModules.length - 1);
       }
+      debugPrint("$prevModulesTemp");
+      setState(() => prevModules = prevModulesTemp);
       nextRoute = prevModules[prevModules.length - 1];
-      //prevModules.remove(prevModules[prevModules.length - 1]);
       debugPrint("[goNext] prevModules: $prevModules");
       debugPrint(nextRoute[1]);
     }
@@ -315,6 +317,16 @@ class _HomepageState extends State<Homepage> {
       
       if ( nextRoute[0] == "Submodule" && nextRoute[1] != "END" && nextRoute[1] != "FIN") {
         if (!mounted) return;
+
+        //Coming back from any physical module, set it back to general_module.
+        if(choice == "prev" && (nextRoute[1] == "respond-physical-menu" || nextRoute[1] == "respond-main-menu" || nextRoute[1] == "respond-mental-menu")){
+          await FilbisDB.setModule("general_module");
+        }
+
+        if(nextRoute[1] == "respond-main-menu"){
+          
+        }
+
         FilbisDB.setSubModule(nextRoute[1]);
         // debugPrint("currSubModuleIndex: $currSubmoduleIndex"); // D E B U G  PRINT
         return;
@@ -330,6 +342,8 @@ class _HomepageState extends State<Homepage> {
       // End of main submodule, go back to general module
       yesBypass = false;
       debugPrint("Finished Submodule");
+      setState(() => prevModules = [["Submodule", "respond-main-menu"]]);
+      debugPrint("prevModules cleared!");
       // debugPrint("currSubModuleIndex: $currSubmoduleIndex"); // D E B U G  PRINT
       FilbisDB.setGeneral("general_module");
     } catch (e) {
@@ -383,13 +397,15 @@ class _HomepageState extends State<Homepage> {
           ),
         ),
         actions: [
-          IconButton(  //THE BACK BUTTON
-            icon: Icon(
-              Icons.arrow_back,
-              color: Colors.white
-            ),
-            onPressed: () => returnResponse("PREV")
-          ),
+          prevModules.length > 1 ?
+            IconButton(  //THE BACK BUTTON
+              icon: Icon(
+                Icons.arrow_back,
+                color: Colors.white
+              ),
+              onPressed: () => returnResponse("PREV")
+            )
+            : Container(),
           haveLanguage ? 
             LanguageDropDown(currChoice: context.read<FilbisDatabase>().currLanguage) //THE LANGUAGE SELECTOR
             : Container(),

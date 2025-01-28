@@ -178,8 +178,7 @@ class FilbisDatabase extends ChangeNotifier {
       debugPrint("after pushing: ${storedRecords.length.toString()}");
     }
 
-    //debugPrint("[Controller] Current Submodule: ${currModule!.subModule}");
-    //debugPrint("[Controller] Next submodule: $nextSubModule");
+    debugPrint("[Controller] Current Module: ${currModule!.name}");
     SubModule next = currModule!.subModule.firstWhere((submodule) => submodule.name == nextSubModule);
     currSub = next;
     currQuestion = next.questionTranslation!.getTranslation(currLanguage)!;
