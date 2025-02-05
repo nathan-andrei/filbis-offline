@@ -26,7 +26,8 @@ class _HomepageState extends State<Homepage> {
   String idNum = "";
   String gender = "female";
   bool yesBypass = false;
-  List<List<String>> prevModules = [];
+  List<List<String>> prevModules = [];  //Array that holds all previous questions/modules; Resets everytime it hits respond-main-menu
+                                        //The last element of prevModules in runtime is the current module!                     
 
   // Checking internet connecion
   bool isConnectedToInternet = false;
@@ -73,19 +74,17 @@ class _HomepageState extends State<Homepage> {
     super.dispose();
   }
 
-
+  //HeartLungsModule works differently so it uses the function after this one (heartsLungModuleBypass)
   // Based on the choice, determine the route to next question
   List<String> determineNext ( String choice, SubModule submodule, int length ) {
     final checkModule = VerifyNextReference();
-    // debugPrint("Choice: $choice");
     late List<String> valuepair;
-    //debugPrint("Yes Bypass: $yesBypass");
     
     debugPrint("choice: $choice");
     debugPrint("length: $length");
     debugPrint("Previous modules: $prevModules");
-    
-    debugPrint("current Language: ${context.read<FilbisDatabase>().currLanguage}");
+    //debugPrint("current Language: ${context.read<FilbisDatabase>().currLanguage}");
+
     // Check if in check_Module.general_module
     if (checkModule.generalModule.containsKey(choice)) {
       if (checkModule.generalModule[choice]!.contains("_")) {   // Choice leads to a module
@@ -96,6 +95,7 @@ class _HomepageState extends State<Homepage> {
 
         //Going to allergy_module puts you through here
 
+        //Add module to prevModules array
         setState(() => prevModules.add(valuepair));
         debugPrint("[1]Current prev list: $prevModules");
         debugPrint("FIRST IF: ${valuepair.toString()}");
@@ -104,8 +104,8 @@ class _HomepageState extends State<Homepage> {
 
       // Choice leads to a submodule within general module
       valuepair = ["Submodule", checkModule.generalModule[choice]!];
-      //This is for the start of a general module so should be added. WRONG; is currently 
-      //returning current menu
+
+      //Add module to prevModules array
       setState(() => prevModules.add(valuepair));
       debugPrint("[2]Current prev list: $prevModules");
 
@@ -115,25 +115,26 @@ class _HomepageState extends State<Homepage> {
     // Check if in yes_list 
     if (checkModule.checkTriggerFollowUp.contains(choice) || yesBypass == true) {
       debugPrint("Yes Bypass: $yesBypass");
-      debugPrint("approaching third");
+
       //Return next submodule reference
       debugPrint("Module: $submodule");
       debugPrint("${submodule.mobile}");
 
       valuepair = ["Submodule", submodule.mobile!.yesNext!];
-      debugPrint("[Approaching 3rd] $valuepair");
+
       // Choice is yes but no follow up
       if ( valuepair[1] == "") {
         valuepair[1] = submodule.mobile!.next!;
       }
 
-      // Follow up question choice is yes and it is the final F-U question
+      // Follow up question choice is yes and it is the final Follow-up question
       if ( valuepair[1] == "END") {
         if (currSubmoduleIndex < length){ currSubmoduleIndex++;}
         // go to end response
         if (currSubmoduleIndex == length) { valuepair[1] = context.read<FilbisDatabase>().getEndResponse();}
       }
 
+      //Add module to prevModules array
       setState(() => prevModules.add(valuepair));
       debugPrint("[3]Current prev list: $prevModules");
 
@@ -147,14 +148,13 @@ class _HomepageState extends State<Homepage> {
     valuepair = ["Submodule", submodule.mobile!.next!];
 
     if ( valuepair[1] == "END") {
-      debugPrint("here");
       debugPrint("currSubmoduleIndex: $currSubmoduleIndex");
         if (currSubmoduleIndex < length){ currSubmoduleIndex++;}
         // go to end response
         if (currSubmoduleIndex == length) { valuepair[1] = context.read<FilbisDatabase>().getEndResponse(); }
-        //Try to change routing here ^
     } 
 
+    //Add module to prevModules array
     setState(() => prevModules.add(valuepair));
     debugPrint("[4]Current prev list: $prevModules");
 
@@ -163,6 +163,7 @@ class _HomepageState extends State<Homepage> {
 
   }
 
+  //heartLungsModule is setup differently, so it goes through here instead of the above function
   void heartLungsModuleBypass (var currModule, var choice, var subModule) {
     if (currModule!.name == "heart_lungs_module") {
       //avoid food and drink confirm-avoiding-food-and-drink
@@ -196,6 +197,7 @@ class _HomepageState extends State<Homepage> {
     }
   }
 
+  //determines which module comes next
   void goNext ( String choice ) async {
     var FilbisDB = context.read<FilbisDatabase>();
     // if currModule is not initialized, return
@@ -206,6 +208,8 @@ class _HomepageState extends State<Homepage> {
 
     var currModule = FilbisDB.currModule;
     String uid = "-";
+
+    debugPrint("Choice: $choice");
 
     if (choice == ""){
       debugPrint("Empty choice");
@@ -233,45 +237,44 @@ class _HomepageState extends State<Homepage> {
     FilbisDB.storeCondition(choice);
 
     var subModule = FilbisDB.subModule!;
-    // insert heart and lungs bypass here
     heartLungsModuleBypass(currModule, choice, subModule);
 
     if ( subModule == "get-sex" ) gender = choice;
     debugPrint("gender: $gender");
 
     List<String> nextRoute;
+
+    //This block handles backtracking
     if(choice == "prev"){
       debugPrint("prev detected");
 
       List<List<String>> prevModulesTemp = [];
+      //Remove 2 modules from array when about to come out of a module. Idk if it's still needed since we reset everytime we go to main menu.
       if(prevModules[prevModules.length - 2][0] == "Module"){
-        //prevModulesTemp = prevModules.remove(prevModules[prevModules.length - 1]);
-        //prevModulesTemp.remove(prevModulesTemp[prevModulesTemp.length - 1])
+        //Removes the current submodule and the module marker which does nothing
         prevModulesTemp = prevModules.sublist(0, prevModules.length - 2);
       }
       else{
-        //prevModulesTemp = prevModules.remove(prevModules[prevModules.length - 1]);
+        //Removes the current submodule
         prevModulesTemp = prevModules.sublist(0, prevModules.length - 1);
       }
-      debugPrint("$prevModulesTemp");
+
       setState(() => prevModules = prevModulesTemp);
-      nextRoute = prevModules[prevModules.length - 1];
+      nextRoute = prevModules[prevModules.length - 1]; //Set the previous submodule as the next route.
       debugPrint("[goNext] prevModules: $prevModules");
-      debugPrint(nextRoute[1]);
     }
     else{
+      //If the choice is normal, proceed as normal.
       debugPrint("not prev");
       nextRoute = determineNext(choice, FilbisDB.currSub!, currModule!.order.length);
     }
-
-    // debugPrint(nextRoute.toString());
 
     // END yes bypass as it has been used
     if (subModule == "count-situps-amount" || subModule == "count-breathing-exercises-amount" || subModule == "confirm-spasm-remedy-medicine") {
         yesBypass = false;
     }
-    // RESPONSE HANDLING
 
+    // RESPONSE HANDLING
     debugPrint("nextRoute: ${nextRoute[1]}");
     if (nextRoute[1] == "get-student-id") { // if submitted school
       school = choice;
@@ -287,31 +290,30 @@ class _HomepageState extends State<Homepage> {
       // check if record exists for curr school + id combo. if none, make one
       context.read<FilbisDatabase>().checkChildRecord(uid);
     }
-    
 
     // before going to the next q, record current response to current 
     // record that's being constructed
     context.read<FilbisDatabase>().recordResponse(choice);
 
     // END - RESPONSE HANDLING
-
-    debugPrint("Choice: $choice");
-
     try {
       if ( nextRoute[0] == "Module" ) {
+        //Since submodules are determined by the module, this block handles that.
         await FilbisDB.setModule(nextRoute[1]);
         String? nextSubmodule = FilbisDB.currModule?.order[0] ?? "";
         debugPrint(FilbisDB.currModule!.order.toString());
+        late List<String> valuepair;
 
         // Endocrine check
         if (nextRoute[1] == "endocrine_module" && (gender == "male" || gender == "lalaki")) {
           nextSubmodule = FilbisDB.currModule?.order[1] ?? "";
         }
-
-        prevModules.add(["Submodule", nextSubmodule]);
+        
+        //Add the determined submodule to the prevModules.
+        valuepair = ["Submodule", nextSubmodule];
+        setState(() => prevModules.add(valuepair));
         debugPrint("[Module tracker] Previous modules: $prevModules");
         FilbisDB.setSubModule(nextSubmodule);
-        // debugPrint("currSubModuleIndex: $currSubmoduleIndex"); // D E B U G  PRINT
         return;
       } 
       
@@ -322,13 +324,7 @@ class _HomepageState extends State<Homepage> {
         if(choice == "prev" && (nextRoute[1] == "respond-physical-menu" || nextRoute[1] == "respond-main-menu" || nextRoute[1] == "respond-mental-menu")){
           await FilbisDB.setModule("general_module");
         }
-
-        if(nextRoute[1] == "respond-main-menu"){
-          
-        }
-
         FilbisDB.setSubModule(nextRoute[1]);
-        // debugPrint("currSubModuleIndex: $currSubmoduleIndex"); // D E B U G  PRINT
         return;
       }
       
@@ -351,6 +347,7 @@ class _HomepageState extends State<Homepage> {
     }
   }
 
+  //Handles setting of language if not set.
   void returnResponse(String choice) {
     if (haveLanguage) {
       goNext(choice.toLowerCase());
@@ -363,7 +360,7 @@ class _HomepageState extends State<Homepage> {
   }
 
   @override
-  Widget build(BuildContext context) { //Is this the header??
+  Widget build(BuildContext context) { //Header
     return Scaffold(
       backgroundColor: const Color(0xffefe0db),
       appBar: AppBar(
@@ -407,7 +404,7 @@ class _HomepageState extends State<Homepage> {
             )
             : Container(),
           haveLanguage ? 
-            LanguageDropDown(currChoice: context.read<FilbisDatabase>().currLanguage) //THE LANGUAGE SELECTOR
+            LanguageDropDown(passedChoice: context.read<FilbisDatabase>().currLanguage) //THE LANGUAGE SELECTOR
             : Container(),
           IconButton(
             icon: Icon(
@@ -443,6 +440,7 @@ class _HomepageState extends State<Homepage> {
     );
   }
 
+  //ALL THE FUNCTIONS OF THE HOMEPAGE BUTTONS
   void _showDownUploadDialog(BuildContext context, bool download) {
     if (isConnectedToInternet) {
       _showConfirmationDialog(context, download);
@@ -728,7 +726,7 @@ class _HomepageState extends State<Homepage> {
                 idNum = "";
                 gender = "female";
                 yesBypass = false;
-                prevModules = [];
+                setState(() => prevModules = []);
               },
               child: const Text('Log Out'),
             ),
