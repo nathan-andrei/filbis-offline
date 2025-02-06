@@ -22,7 +22,7 @@ class _LanguageDropDownState extends State<LanguageDropDown>{
 
   @override
   initState(){
-    currChoice = widget.passedChoice;
+    currChoice = widget.passedChoice[0].toUpperCase() + widget.passedChoice.substring(1);
     super.initState();
   }
 
